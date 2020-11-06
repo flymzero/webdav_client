@@ -3,18 +3,24 @@ import 'dart:io';
 import 'package:webdav_client/src/utils.dart';
 import 'package:meta/meta.dart';
 
+// Auth type
+enum AuthType{
+  NoAuth,
+  BasicAuth,
+  DigestAuth,
+}
+
 // Auth
 class Auth {
   final String user;
-
   final String pwd;
 
   Auth({
-    this.user,
-    this.pwd,
+    this.user = '',
+    this.pwd = '',
   });
 
-  String get type => 'NoAuth';
+  AuthType get type => AuthType.NoAuth;
 
   void authorize(HttpClientRequest req, String method, String path) {}
 }
@@ -22,15 +28,15 @@ class Auth {
 // BasicAuth
 class BasicAuth extends Auth {
   BasicAuth({
-    @required String user,
-    @required String pwd,
+    required String user,
+    required String pwd,
   }) : super(
           user: user,
           pwd: pwd,
         );
 
   @override
-  String get type => 'BasicAuth';
+  AuthType get type => AuthType.BasicAuth;
 
   @override
   void authorize(HttpClientRequest req, String method, String path) {
@@ -44,40 +50,62 @@ class BasicAuth extends Auth {
 class DigestParts {
   String uri = '';
   String method = '';
-  String username = '';
-  String password = '';
 
-  String nonce = '';
-  String realm = '';
-  String qop = '';
-  String opaque = '';
-  String algorithm = '';
-  String entityBody = '';
+  Map<String, String> parts = {
+    'nonce':'',
+    'realm':'',
+    'qop':'',
+    'opaque':'',
+    'algorithm':'',
+    'entityBody':'',
+  };
+
+  DigestParts(String? authHeader){
+    if (authHeader != null){
+      var keys = parts.keys;
+      var list = authHeader.split(',');
+      list.forEach((kv) {
+        keys.forEach((k) {
+          if (kv.contains(k)){
+            var splitList = kv.split('=');
+            if (splitList.length == 2){
+              parts[k] = splitList[1].replaceAll('"', '');
+            }
+          }
+        });
+      });
+    }
+  }
 }
 
 // DigestAuth
 class DigestAuth extends Auth {
-  DigestParts digestParts;
+  DigestParts dParts;
 
   DigestAuth({
-    @required String user,
-    @required String pwd,
-    this.digestParts,
+    required String user,
+    required String pwd,
+    required this.dParts,
   }) : super(
           user: user,
           pwd: pwd,
         );
 
+  String get nonce => this.dParts.parts['nonce']!;
+  String get realm => this.dParts.parts['realm']!;
+  String get qop => this.dParts.parts['qop']!;
+  String get opaque => this.dParts.parts['opaque']!;
+  String get algorithm => this.dParts.parts['algorithm']!;
+  String get entityBody => this.dParts.parts['entityBody']!;
+
   @override
-  String get type => 'DigestAuth';
+  AuthType get type => AuthType.DigestAuth;
 
   @override
   void authorize(HttpClientRequest req, String method, String path) {
-    this.digestParts.uri = path;
-    this.digestParts.method = method;
-    this.digestParts.username = this.user;
-    this.digestParts.password = this.pwd;
-    this._getDigestAuthorization();
+    this.dParts.uri = path;
+    this.dParts.method = method;
+    req.headers.add('Authorization', this._getDigestAuthorization());
   }
 
   String _getDigestAuthorization() {
@@ -86,17 +114,28 @@ class DigestAuth extends Auth {
     String ha1 = _computeHA1(nonceCount, cnonce);
     String ha2 = _computeHA2();
     String response = _computeResponse(ha1, ha2, nonceCount, cnonce);
+    String authorization = 'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=%v, cnonce="$cnonce", response="$response"';
+
+    if (this.qop.isNotEmpty){
+      authorization += ', qop=${this.qop}';
+    }
+
+    if (this.opaque.isNotEmpty){
+      authorization += ', opaque=${this.opaque}';
+    }
+
+    return authorization;
   }
 
   //
   String _computeHA1(int nonceCount, String cnonce) {
-    String algorithm = this.digestParts.algorithm ?? 'MD5';
+    String algorithm = this.algorithm;
 
     if (algorithm == 'MD5' || algorithm.isEmpty) {
-      return md5Hash('${this.user}:${this.digestParts.realm}:${this.pwd}');
+      return md5Hash('${this.user}:${this.realm}:${this.pwd}');
     } else if (algorithm == 'MD5-sess') {
       String md5Str =
-          md5Hash('${this.user}:${this.digestParts.realm}:${this.pwd}');
+          md5Hash('${this.user}:${this.realm}:${this.pwd}');
       return md5Hash('$md5Str:$nonceCount:$cnonce');
     }
 
@@ -105,14 +144,14 @@ class DigestAuth extends Auth {
 
   //
   String _computeHA2() {
-    String qop = this.digestParts.qop;
+    String qop = this.qop;
 
     if (qop == 'auth' || qop.isEmpty) {
-      return md5Hash('${this.digestParts.method}:${this.digestParts.uri}');
+      return md5Hash('${this.dParts.method}:${this.dParts.uri}');
     } else if (qop == 'auth-int' &&
-        this.digestParts.entityBody.isEmpty == false) {
+        this.entityBody.isEmpty == false) {
       return md5Hash(
-          '${this.digestParts.method}:${this.digestParts.uri}:${md5Hash(this.digestParts.entityBody)}');
+          '${this.dParts.method}:${this.dParts.uri}:${md5Hash(this.entityBody)}');
     }
 
     return '';
@@ -121,13 +160,13 @@ class DigestAuth extends Auth {
   //
   String _computeResponse(
       String ha1, String ha2, int nonceCount, String cnonce) {
-    String qop = this.digestParts.qop;
+    String qop = this.qop;
 
-    if (qop == null) {
-      return md5Hash('$ha1:${this.digestParts.nonce}:$ha2');
+    if (qop.isEmpty) {
+      return md5Hash('$ha1:${this.nonce}:$ha2');
     } else if (qop == 'auth' || qop == 'auth-int') {
       return md5Hash(
-          '$ha1:${this.digestParts.nonce}:$nonceCount:$cnonce:$qop:$ha2');
+          '$ha1:${this.nonce}:$nonceCount:$cnonce:$qop:$ha2');
     }
 
     return '';

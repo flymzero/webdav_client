@@ -13,7 +13,7 @@ class Client {
   String a = 'hhh';
 
   Client({
-    @required this.uri,
+    required this.uri,
     this.auth,
     this.headers,
     this.c,
@@ -30,7 +30,7 @@ class Client {
     this.auth.authorize(request, method, path);
     HttpClientResponse response = await request.close();
     if (response.statusCode == 401 && this.auth.type == 'NoAuth') {
-      // String wwwAuthenticateHeader = response.headers.value('Www-Authenticate').toLowerCase();
+      String wwwAuthenticateHeader = response.headers.value('Www-Authenticate').toLowerCase();
       var a = DigestAuth(
           user: this.auth.user, pwd: this.auth.pwd, digestParts: DigestParts());
       a.authorize(request, method, path);
