@@ -25,3 +25,11 @@ String fixSlash(String s) {
   }
   return s;
 }
+
+// 添加 '/' 前后缀
+String fixSlashes(String s){
+  if (!s.startsWith('/')){
+    s = '/${s}';
+  }
+  return fixSlash(s);
+}

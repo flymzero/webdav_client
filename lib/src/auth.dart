@@ -22,14 +22,14 @@ class Auth {
 
   AuthType get type => AuthType.NoAuth;
 
-  void authorize(HttpClientRequest req, String method, String path) {}
+  String authorize(String method, String path) => '';
 }
 
 // BasicAuth
 class BasicAuth extends Auth {
   BasicAuth({
-    required String user,
-    required String pwd,
+    @required String user,
+    @required String pwd,
   }) : super(
           user: user,
           pwd: pwd,
@@ -39,10 +39,9 @@ class BasicAuth extends Auth {
   AuthType get type => AuthType.BasicAuth;
 
   @override
-  void authorize(HttpClientRequest req, String method, String path) {
+  String authorize(String method, String path) {
     List<int> bytes = utf8.encode('${this.user}:${this.pwd}');
-    String auth = 'Basic ${base64Encode(bytes)}';
-    req.headers.add('Authorization', auth);
+    return 'Basic ${base64Encode(bytes)}';
   }
 }
 
@@ -60,7 +59,7 @@ class DigestParts {
     'entityBody':'',
   };
 
-  DigestParts(String? authHeader){
+  DigestParts(String authHeader){
     if (authHeader != null){
       var keys = parts.keys;
       var list = authHeader.split(',');
@@ -83,29 +82,29 @@ class DigestAuth extends Auth {
   DigestParts dParts;
 
   DigestAuth({
-    required String user,
-    required String pwd,
-    required this.dParts,
+    @required String user,
+    @required String pwd,
+    @required this.dParts,
   }) : super(
           user: user,
           pwd: pwd,
         );
 
-  String get nonce => this.dParts.parts['nonce']!;
-  String get realm => this.dParts.parts['realm']!;
-  String get qop => this.dParts.parts['qop']!;
-  String get opaque => this.dParts.parts['opaque']!;
-  String get algorithm => this.dParts.parts['algorithm']!;
-  String get entityBody => this.dParts.parts['entityBody']!;
+  String get nonce => this.dParts.parts['nonce'];
+  String get realm => this.dParts.parts['realm'];
+  String get qop => this.dParts.parts['qop'];
+  String get opaque => this.dParts.parts['opaque'];
+  String get algorithm => this.dParts.parts['algorithm'];
+  String get entityBody => this.dParts.parts['entityBody'];
 
   @override
   AuthType get type => AuthType.DigestAuth;
 
   @override
-  void authorize(HttpClientRequest req, String method, String path) {
+  String authorize(String method, String path) {
     this.dParts.uri = path;
     this.dParts.method = method;
-    req.headers.add('Authorization', this._getDigestAuthorization());
+    return this._getDigestAuthorization();
   }
 
   String _getDigestAuthorization() {
@@ -114,7 +113,7 @@ class DigestAuth extends Auth {
     String ha1 = _computeHA1(nonceCount, cnonce);
     String ha2 = _computeHA2();
     String response = _computeResponse(ha1, ha2, nonceCount, cnonce);
-    String authorization = 'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=%v, cnonce="$cnonce", response="$response"';
+    String authorization = 'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
 
     if (this.qop.isNotEmpty){
       authorization += ', qop=${this.qop}';

@@ -11,5 +11,4 @@ dependencies:
   crypto: ^2.1.5
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  test: '>=1.0.0 <2.0.0'

@@ -1,3 +1,3 @@
 library webdav_client;
 
-export 'src/utils.dart';
+export 'src/client.dart';
