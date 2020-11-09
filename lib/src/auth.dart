@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:io';
-import 'package:webdav_client/src/utils.dart';
+
 import 'package:meta/meta.dart';
+import 'package:webdav_client/src/utils.dart';
 
 // Auth type
-enum AuthType{
+enum AuthType {
   NoAuth,
   BasicAuth,
   DigestAuth,
@@ -16,9 +16,10 @@ class Auth {
   final String pwd;
 
   Auth({
-    this.user = '',
-    this.pwd = '',
-  });
+    String user,
+    String pwd,
+  })  : this.user = user ?? '',
+        this.pwd = pwd ?? '';
 
   AuthType get type => AuthType.NoAuth;
 
@@ -51,24 +52,24 @@ class DigestParts {
   String method = '';
 
   Map<String, String> parts = {
-    'nonce':'',
-    'realm':'',
-    'qop':'',
-    'opaque':'',
-    'algorithm':'',
-    'entityBody':'',
+    'nonce': '',
+    'realm': '',
+    'qop': '',
+    'opaque': '',
+    'algorithm': '',
+    'entityBody': '',
   };
 
-  DigestParts(String authHeader){
-    if (authHeader != null){
+  DigestParts(String authHeader) {
+    if (authHeader != null) {
       var keys = parts.keys;
       var list = authHeader.split(',');
       list.forEach((kv) {
         keys.forEach((k) {
-          if (kv.contains(k)){
-            var splitList = kv.split('=');
-            if (splitList.length == 2){
-              parts[k] = splitList[1].replaceAll('"', '');
+          if (kv.contains(k)) {
+            var index = kv.indexOf('=');
+            if (kv.length - 1 > index) {
+              parts[k] = trim(kv.substring(index + 1), '"');
             }
           }
         });
@@ -113,13 +114,14 @@ class DigestAuth extends Auth {
     String ha1 = _computeHA1(nonceCount, cnonce);
     String ha2 = _computeHA2();
     String response = _computeResponse(ha1, ha2, nonceCount, cnonce);
-    String authorization = 'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
+    String authorization =
+        'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
 
-    if (this.qop.isNotEmpty){
+    if (this.qop.isNotEmpty) {
       authorization += ', qop=${this.qop}';
     }
 
-    if (this.opaque.isNotEmpty){
+    if (this.opaque.isNotEmpty) {
       authorization += ', opaque=${this.opaque}';
     }
 
@@ -133,8 +135,7 @@ class DigestAuth extends Auth {
     if (algorithm == 'MD5' || algorithm.isEmpty) {
       return md5Hash('${this.user}:${this.realm}:${this.pwd}');
     } else if (algorithm == 'MD5-sess') {
-      String md5Str =
-          md5Hash('${this.user}:${this.realm}:${this.pwd}');
+      String md5Str = md5Hash('${this.user}:${this.realm}:${this.pwd}');
       return md5Hash('$md5Str:$nonceCount:$cnonce');
     }
 
@@ -147,8 +148,7 @@ class DigestAuth extends Auth {
 
     if (qop == 'auth' || qop.isEmpty) {
       return md5Hash('${this.dParts.method}:${this.dParts.uri}');
-    } else if (qop == 'auth-int' &&
-        this.entityBody.isEmpty == false) {
+    } else if (qop == 'auth-int' && this.entityBody.isEmpty == false) {
       return md5Hash(
           '${this.dParts.method}:${this.dParts.uri}:${md5Hash(this.entityBody)}');
     }
@@ -164,8 +164,7 @@ class DigestAuth extends Auth {
     if (qop.isEmpty) {
       return md5Hash('$ha1:${this.nonce}:$ha2');
     } else if (qop == 'auth' || qop == 'auth-int') {
-      return md5Hash(
-          '$ha1:${this.nonce}:$nonceCount:$cnonce:$qop:$ha2');
+      return md5Hash('$ha1:${this.nonce}:$nonceCount:$cnonce:$qop:$ha2');
     }
 
     return '';

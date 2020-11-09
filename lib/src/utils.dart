@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as math;
+
 import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart' as crypto;
 
@@ -18,6 +19,22 @@ String computeNonce() {
   return hex.encode(values).substring(0, 16);
 }
 
+String trim(String str, [String chars]) {
+  RegExp pattern =
+      (chars != null) ? RegExp('^[$chars]+|[$chars]+\$') : RegExp(r'^\s+|\s+$');
+  return str.replaceAll(pattern, '');
+}
+
+String ltrim(String str, [String chars]) {
+  var pattern = chars != null ? new RegExp('^[$chars]+') : new RegExp(r'^\s+');
+  return str.replaceAll(pattern, '');
+}
+
+String rtrim(String str, [String chars]) {
+  var pattern = chars != null ? new RegExp('[$chars]+\$') : new RegExp(r'\s+$');
+  return str.replaceAll(pattern, '');
+}
+
 // 添加 '/' 后缀
 String fixSlash(String s) {
   if (!s.endsWith('/')) {
@@ -27,9 +44,14 @@ String fixSlash(String s) {
 }
 
 // 添加 '/' 前后缀
-String fixSlashes(String s){
-  if (!s.startsWith('/')){
+String fixSlashes(String s) {
+  if (!s.startsWith('/')) {
     s = '/${s}';
   }
   return fixSlash(s);
+}
+
+// 使用 '/' 连接path
+String join(String path0, String path1) {
+  return rtrim(path0, '/') + '/' + ltrim(path1);
 }
