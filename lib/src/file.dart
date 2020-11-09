@@ -1,9 +1,21 @@
 class File {
   String path;
-  String name;
-  String contentType;
-  int size;
-  int modified;
-  String etag;
   bool isDir;
+  String name;
+  String mimeType;
+  int size;
+  String eTag;
+  DateTime cTime;
+  DateTime mTime;
+
+  File({
+  this.path,
+    this.isDir,
+    this.name,
+    this.mimeType,
+    this.size,
+    this.eTag,
+    this.cTime,
+    this.mTime,
+});
 }

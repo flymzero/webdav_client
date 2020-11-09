@@ -53,5 +53,5 @@ String fixSlashes(String s) {
 
 // 使用 '/' 连接path
 String join(String path0, String path1) {
-  return rtrim(path0, '/') + '/' + ltrim(path1);
+  return rtrim(path0, '/') + '/' + ltrim(path1, '/');
 }

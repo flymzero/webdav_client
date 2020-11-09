@@ -34,7 +34,7 @@ extension HttpClientExtension on HttpClient {
 
     request
       ..followRedirects = false
-      ..persistentConnection = true;
+      ..persistentConnection = false;
 
     self.headers.forEach((key, value) {
       request.headers.set(key, value);
@@ -92,11 +92,11 @@ extension HttpClientExtension on HttpClient {
       path,
       data: utf8.encode(dataStr),
       intercept: (req) {
-        req.headers.add('Depth', depth ? '1' : '0');
-        req.headers.add('Content-Type', 'application/xml;charset=UTF-8');
-        req.headers.add('Accept', 'application/xml,text/xml');
-        req.headers.add('Accept-Charset', 'utf-8');
-        req.headers.add('Accept-Encoding', '');
+        req.headers.set('Depth', depth ? '1' : '0');
+        req.headers.set('Content-Type', 'application/xml;charset=UTF-8');
+        req.headers.set('Accept', 'application/xml,text/xml');
+        req.headers.set('Accept-Charset', 'utf-8');
+        req.headers.set('Accept-Encoding', '');
       },
       cancelToken: cancelToken,
     );
