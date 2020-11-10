@@ -1,5 +1,6 @@
 enum WebdavErrorType {
   Default,
+  XML,
   Cancel,
 }
 

@@ -1,7 +1,8 @@
 import 'dart:convert';
 
 import 'package:meta/meta.dart';
-import 'package:webdav_client/src/utils.dart';
+
+import 'utils.dart';
 
 // Auth type
 enum AuthType {
@@ -23,7 +24,7 @@ class Auth {
 
   AuthType get type => AuthType.NoAuth;
 
-  String authorize(String method, String path) => '';
+  String authorize(String method, String path) => null;
 }
 
 // BasicAuth

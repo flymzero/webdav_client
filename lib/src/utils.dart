@@ -55,3 +55,16 @@ String fixSlashes(String s) {
 String join(String path0, String path1) {
   return rtrim(path0, '/') + '/' + ltrim(path1, '/');
 }
+
+// 获取文件名
+String path2Name(String path) {
+  var str = rtrim(path, '/');
+  var index = str.lastIndexOf('/');
+  if (index > -1) {
+    str = str.substring(index + 1);
+  }
+  if (str == '') {
+    return '/';
+  }
+  return str;
+}

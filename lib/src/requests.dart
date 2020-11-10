@@ -2,22 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:webdav_client/src/auth.dart';
-import 'package:webdav_client/src/client.dart';
-import 'package:webdav_client/src/utils.dart';
-
+import 'auth.dart';
+import 'client.dart';
 import 'error.dart';
-
-const t = '''<d:propfind xmlns:d='DAV:'>
-			<d:prop>
-				<d:displayname/>
-				<d:resourcetype/>
-				<d:getcontentlength/>
-				<d:getcontenttype/>
-				<d:getetag/>
-				<d:getlastmodified/>
-			</d:prop>
-		</d:propfind>''';
+import 'utils.dart';
 
 extension HttpClientExtension on HttpClient {
   //
@@ -41,7 +29,9 @@ extension HttpClientExtension on HttpClient {
     });
 
     String str = self.auth.authorize(method, path);
-    request.headers.set('Authorization', str);
+    if (str != null) {
+      request.headers.set('Authorization', str);
+    }
 
     if (intercept != null) {
       intercept(request);

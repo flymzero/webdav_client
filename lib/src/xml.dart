@@ -1,58 +1,115 @@
-import 'package:xml/xml.dart';
 import 'package:intl/intl.dart';
+import 'package:xml/xml.dart';
 
+import 'error.dart';
 import 'file.dart';
+import 'utils.dart';
 
-class WebdavXml{
-  static List<XmlElement> findAllElements(XmlDocument document, String tag) => document.findAllElements(tag, namespace: '*').toList();
+const fileXmlStr = '''<d:propfind xmlns:d='DAV:'>
+			<d:prop>
+				<d:displayname/>
+				<d:resourcetype/>
+				<d:getcontentlength/>
+				<d:getcontenttype/>
+				<d:getetag/>
+				<d:getlastmodified/>
+			</d:prop>
+		</d:propfind>''';
 
-  static List<XmlElement> findElements(XmlElement element, String tag) => element.findElements(tag, namespace: '*').toList();
+class WebdavXml {
+  static List<XmlElement> findAllElements(XmlDocument document, String tag) =>
+      document.findAllElements(tag, namespace: '*').toList();
 
-  static fileTree(String xmlStr){
+  static List<XmlElement> findElements(XmlElement element, String tag) =>
+      element.findElements(tag, namespace: '*').toList();
 
-    var tree = List<File>();
-
+  static List<File> toFiles(String path, String xmlStr) {
+    var files = List<File>();
     var xmlDocument = XmlDocument.parse(xmlStr);
     List<XmlElement> list = findAllElements(xmlDocument, 'response');
+    bool skipSelf = true;
+    // response
     list.forEach((element) {
       // name
-      String name = findElements(element, 'href').single.text;
-      findElements(findElements(element, 'propstat').first, 'prop').forEach((element) {
-        // mimeType
-        final mimeTypeElements = findElements(element, 'getcontenttype');
-        String mimeType = mimeTypeElements.isNotEmpty ? mimeTypeElements.single.text : '';
+      String href = findElements(element, 'href').single.text;
 
-        // size
-        final sizeElements = findElements(element, 'getcontentlength');
-        int size = sizeElements.isNotEmpty ? int.parse(sizeElements.single.text) : 0;
+      // propstats
+      var props = findElements(element, 'propstat');
+      // propstat
+      for (var propstat in props) {
+        // ignore != 200
+        if (findElements(propstat, 'status').single.text.contains('200')) {
+          // prop
+          for (var prop in findElements(propstat, 'prop')) {
+            // isDir
+            bool isDir = findElements(
+                    findElements(prop, 'resourcetype').single, 'collection')
+                .isNotEmpty;
 
-        // eTag
-        final eTagElements = findElements(element, 'getetag');
-        String eTag = eTagElements.isNotEmpty ? eTagElements.single.text : '';
+            // skip self
+            if (skipSelf) {
+              skipSelf = false;
+              if (isDir) {
+                break;
+              }
+              throw WebdavError(
+                  type: WebdavErrorType.XML, error: 'xml parse error(405)');
+            }
 
-        // create time
-        final cTimeElements = findElements(element, 'creationdate');
-        DateTime cTime = cTimeElements.isNotEmpty ? DateTime.parse(cTimeElements.single.text) : null;
+            // mimeType
+            final mimeTypeElements = findElements(prop, 'getcontenttype');
+            String mimeType =
+                mimeTypeElements.isNotEmpty ? mimeTypeElements.single.text : '';
 
-        // modified time
-        final mTimeElements = findElements(element, 'getlastmodified');
-        DateTime mTime = mTimeElements.isNotEmpty ? DateFormat('E, d MMM yyyy HH:mm:ss Z')
-            .parse(mTimeElements.single.text) : null;
+            // size
+            int size = 0;
+            if (!isDir) {
+              final sizeElements = findElements(prop, 'getcontentlength');
+              size = sizeElements.isNotEmpty
+                  ? int.parse(sizeElements.single.text)
+                  : 0;
+            }
 
-        tree.add(File(
-          path: '',
-          isDir: false,
-          name: name,
-          mimeType: mimeType,
-          size: size,
-          eTag: eTag,
-          cTime: cTime,
-          mTime: mTime,
-        ));
-        print(cTime.millisecondsSinceEpoch);
-        print(mTime.millisecondsSinceEpoch);
-        print(tree);
-      });
+            // eTag
+            final eTagElements = findElements(prop, 'getetag');
+            String eTag =
+                eTagElements.isNotEmpty ? eTagElements.single.text : '';
+
+            // create time
+            final cTimeElements = findElements(prop, 'creationdate');
+            DateTime cTime = cTimeElements.isNotEmpty
+                ? DateTime.parse(cTimeElements.single.text).toLocal()
+                : null;
+
+            // modified time
+            final mTimeElements = findElements(prop, 'getlastmodified');
+            print(mTimeElements.single.text);
+            DateTime mTime = mTimeElements.isNotEmpty
+                ? DateFormat('E, d MMM yyyy HH:mm:ss Z')
+                    .parse(mTimeElements.single.text, true)
+                    .toLocal()
+                : null;
+
+            //
+            var str = Uri.decodeFull(href);
+            var name = path2Name(str);
+            var filePath = path + name + (isDir ? '/' : '');
+
+            files.add(File(
+              path: filePath,
+              isDir: isDir,
+              name: name,
+              mimeType: mimeType,
+              size: size,
+              eTag: eTag,
+              cTime: cTime,
+              mTime: mTime,
+            ));
+            break;
+          }
+        }
+      }
     });
+    return files;
   }
 }
