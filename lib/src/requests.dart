@@ -97,4 +97,33 @@ extension HttpClientExtension on HttpClient {
 
     return resp;
   }
+
+  //
+  Future<HttpClientResponse> mkcol(Client self, String path,
+      {CancelToken cancelToken}) {
+    return this.req(self, 'MKCOL', path, cancelToken: cancelToken);
+  }
+
+  //
+  Future<HttpClientResponse> delete2(Client self, String path,
+      {CancelToken cancelToken}) {
+    return this.req(self, 'DELETE', path, cancelToken: cancelToken);
+  }
+
+  //
+  Future<void> copyMove(
+      Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
+      {CancelToken cancelToken}) async {
+    var method = isCopy == true ? 'COPY' : 'MOVE';
+    var resp = await this.req(self, method, oldPath, intercept: (req) {
+      req.headers.set('Destination', join(self.uri, newPath));
+      req.headers.set('Overwrite', overwrite == true ? 'T' : 'F');
+    }, cancelToken: cancelToken);
+
+    var status = resp.statusCode;
+    // TODO 207
+    if (status == 201 || status == 204 || status == 207) {
+      return;
+    } else if (status == 409) {}
+  }
 }
