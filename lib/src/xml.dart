@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 import 'package:xml/xml.dart';
 
 import 'error.dart';
@@ -84,9 +83,7 @@ class WebdavXml {
             // modified time
             final mTimeElements = findElements(prop, 'getlastmodified');
             DateTime mTime = mTimeElements.isNotEmpty
-                ? DateFormat('E, d MMM yyyy HH:mm:ss Z')
-                    .parse(mTimeElements.single.text, true)
-                    .toLocal()
+                ? str2LocalTime(mTimeElements.single.text)
                 : null;
 
             //

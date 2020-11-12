@@ -4,6 +4,21 @@ import 'dart:math' as math;
 import 'package:convert/convert.dart';
 import 'md5.dart';
 
+const months = {
+  'jan': '01',
+  'feb': '02',
+  'mar': '03',
+  'apr': '04',
+  'may': '05',
+  'jun': '06',
+  'jul': '07',
+  'aug': '08',
+  'sep': '09',
+  'oct': '10',
+  'nov': '11',
+  'dec': '12',
+};
+
 // md5
 String md5Hash(String data) {
   MD5 hasher = new MD5()..add(Utf8Encoder().convert(data));
@@ -15,23 +30,26 @@ String md5Hash(String data) {
   return result.toString();
 }
 
-// ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-// [
-//       'Jan',
-//       'Feb',
-//       'Mar',
-//       'Apr',
-//       'May',
-//       'Jun',
-//       'Jul',
-//       'Aug',
-//       'Sep',
-//       'Oct',
-//       'Nov',
-//       'Dec'
-//     ],
-String str2Time(){
-  DateTime.parse(formattedString)
+DateTime str2LocalTime(String str) {
+  if (str == null) {
+    return null;
+  }
+  var s = str.toLowerCase();
+  if (!s.endsWith('gmt')) {
+    return null;
+  }
+  var list = s.split(' ');
+  if (list.length != 6) {
+    return null;
+  }
+  var month = months[list[2]];
+  if (month == null) {
+    return null;
+  }
+
+  return DateTime.parse(
+          '${list[3]}-$month-${list[1].padLeft(2, '0')}T${list[4]}Z')
+      .toLocal();
 }
 
 // 16进制字符串随机数

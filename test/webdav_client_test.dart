@@ -29,6 +29,7 @@ void main() {
       var list = await client.readDir('/');
       list.forEach((f) {
         print(f.name);
+        print(f.mTime.toString());
       });
     });
 
