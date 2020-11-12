@@ -2,14 +2,36 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:convert/convert.dart';
-import 'package:crypto/crypto.dart' as crypto;
+import 'md5.dart';
 
 // md5
 String md5Hash(String data) {
-  var content = Utf8Encoder().convert(data);
-  var md5 = crypto.md5;
-  var digest = md5.convert(content).toString();
-  return digest;
+  MD5 hasher = new MD5()..add(Utf8Encoder().convert(data));
+  var bytes = hasher.close();
+  var result = new StringBuffer();
+  for (var part in bytes) {
+    result.write('${part < 16 ? '0' : ''}${part.toRadixString(16)}');
+  }
+  return result.toString();
+}
+
+// ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+// [
+//       'Jan',
+//       'Feb',
+//       'Mar',
+//       'Apr',
+//       'May',
+//       'Jun',
+//       'Jul',
+//       'Aug',
+//       'Sep',
+//       'Oct',
+//       'Nov',
+//       'Dec'
+//     ],
+String str2Time(){
+  DateTime.parse(formattedString)
 }
 
 // 16进制字符串随机数

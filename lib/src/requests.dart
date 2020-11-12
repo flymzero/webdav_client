@@ -17,6 +17,8 @@ extension HttpClientExtension on HttpClient {
     Function(HttpClientRequest) intercept,
     CancelToken cancelToken,
   }) async {
+    // this.addProxyCredentials(host, port, realm, credentials)//.addCredentials(url, realm, credentials)
+
     HttpClientRequest request =
         await this.openUrl(method, Uri.parse('${join(self.uri, path)}'));
 

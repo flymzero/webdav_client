@@ -8,7 +8,6 @@ environment:
   sdk: ">=2.10.0 <3.0.0"
 
 dependencies:
-  crypto: ^2.1.5
   xml: ^4.5.1
   intl: ^0.16.1
 
