@@ -2,11 +2,11 @@ import 'package:test/test.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {
-  // var client = webdav.newClient('https://dav.jianguoyun.com/dav/',
-  //     user: 'flymzero@gmail.com', password: 'a7ij5ru5qp3hpydf');
+  var client = webdav.newClient('https://dav.jianguoyun.com/dav/',
+      user: 'flymzero@gmail.com', password: 'a7ij5ru5qp3hpydf');
 
-  var client = webdav.newClient('http://localhost:6688',
-      user: 'flyzero', password: '123456');
+  // var client = webdav.newClient('http://localhost:6688',
+  //     user: 'flyzero', password: '123456');
 
   // test ping
   test('ping', () async {
@@ -44,11 +44,11 @@ void main() {
   // remove
   group('remove', () {
     test('remove a folder', () async {
-      await client.remove('/jj/hh');
+      await client.remove('/newFolder2/newFolder3');
     });
 
     test('remove a file', () async {
-      await client.remove('新建文件夹/file2.txt');
+      await client.remove('/新建文件夹/file.txt');
     });
   });
 }

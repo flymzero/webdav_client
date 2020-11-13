@@ -30,7 +30,8 @@ extension HttpClientExtension on HttpClient {
       request.headers.set(key, value);
     });
 
-    String str = self.auth.authorize(method, path);
+    // Uri.encodeComponent fix not ascii
+    String str = self.auth.authorize(method, Uri.encodeComponent(path));
     if (str != null) {
       request.headers.set('Authorization', str);
     }
