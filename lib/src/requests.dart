@@ -17,8 +17,6 @@ extension HttpClientExtension on HttpClient {
     Function(HttpClientRequest) intercept,
     CancelToken cancelToken,
   }) async {
-    // this.addProxyCredentials(host, port, realm, credentials)//.addCredentials(url, realm, credentials)
-
     HttpClientRequest request =
         await this.openUrl(method, Uri.parse('${join(self.uri, path)}'));
 
@@ -30,8 +28,7 @@ extension HttpClientExtension on HttpClient {
       request.headers.set(key, value);
     });
 
-    // Uri.encodeComponent fix not ascii
-    String str = self.auth.authorize(method, Uri.encodeComponent(path));
+    String str = self.auth.authorize(method, path);
     if (str != null) {
       request.headers.set('Authorization', str);
     }
@@ -119,7 +116,7 @@ extension HttpClientExtension on HttpClient {
       {CancelToken cancelToken}) async {
     var method = isCopy == true ? 'COPY' : 'MOVE';
     var resp = await this.req(self, method, oldPath, intercept: (req) {
-      req.headers.set('Destination', join(self.uri, newPath));
+      req.headers.set('Destination', Uri.encodeFull(join(self.uri, newPath)));
       req.headers.set('Overwrite', overwrite == true ? 'T' : 'F');
     }, cancelToken: cancelToken);
 
@@ -127,6 +124,22 @@ extension HttpClientExtension on HttpClient {
     // TODO 207
     if (status == 201 || status == 204 || status == 207) {
       return;
-    } else if (status == 409) {}
+    } else if (status == 409) {
+      await this._createParent(self, newPath);
+      return this.copyMove(self, oldPath, newPath, isCopy, overwrite);
+    } else {
+      throw WebdavError(error: '${resp.reasonPhrase}(${resp.statusCode})');
+    }
+  }
+
+  //
+  Future<void> _createParent(Client self, String path,
+      {CancelToken cancelToken}) {
+    var parentPath = path.substring(0, path.lastIndexOf('/') + 1);
+    ;
+    if (parentPath == '' || parentPath == '/') {
+      return null;
+    }
+    return self.mkdirAll(path, cancelToken);
   }
 }

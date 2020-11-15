@@ -5,7 +5,7 @@ void main() {
   var client = webdav.newClient('https://dav.jianguoyun.com/dav/',
       user: 'flymzero@gmail.com', password: 'a7ij5ru5qp3hpydf');
 
-  // var client = webdav.newClient('http://localhost:6688',
+  // var client = webdav.newClient('http://192.168.0.101:6688/',
   //     user: 'flyzero', password: '123456');
 
   // test ping
@@ -48,7 +48,28 @@ void main() {
     });
 
     test('remove a file', () async {
-      await client.remove('/新建文件夹/file.txt');
+      await client.remove('/我的坚果云/CMMX4615.zip');
+    });
+  });
+
+  // rename
+  group('rename', () {
+    test('rename a folder', () async {
+      await client.rename('/新建文件夹', '/新建文件夹2', true);
+    });
+
+    test('rename a file', () async {
+      await client.rename('/新建文件夹2/test.dart', '/新建文件夹2/test2.dart', true);
+    });
+  });
+
+  group('copy', () {
+    test('copy a folder', () async {
+      await client.copy('/2/heihei', '/我的坚果云/bb', true);
+    });
+
+    test('copy a file', () async {
+      await client.copy('/我的坚果云/【01】坚果云入门基础知识.pdf', '/2/heihei/jj.pdf', true);
     });
   });
 }

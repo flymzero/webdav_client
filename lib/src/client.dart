@@ -90,7 +90,7 @@ class Client {
     return removeAll(path, cancelToken);
   }
 
-//
+  //
   Future<void> removeAll(String path, [CancelToken cancelToken]) async {
     var resp = await this.c.delete2(this, path, cancelToken: cancelToken);
     if (resp.statusCode == 200 ||
@@ -99,6 +99,16 @@ class Client {
       return;
     }
     throw WebdavError(error: '${resp.reasonPhrase}(${resp.statusCode})');
+  }
+
+  //
+  Future<void> rename(String oldPath, String newPath, bool overwrite, [CancelToken cancelToken]){
+    return this.c.copyMove(this, oldPath, newPath, false, overwrite);
+  }
+
+  //
+  Future<void> copy(String oldPath, String newPath, bool overwrite, [CancelToken cancelToken]){
+    return this.c.copyMove(this, oldPath, newPath, true, overwrite);
   }
 }
 

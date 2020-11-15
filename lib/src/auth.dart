@@ -104,8 +104,9 @@ class DigestAuth extends Auth {
 
   @override
   String authorize(String method, String path) {
-    this.dParts.uri = path;
+    this.dParts.uri = Uri.encodeFull(path);
     this.dParts.method = method;
+    // Uri.encodeComponent fix not ascii
     return this._getDigestAuthorization();
   }
 
