@@ -53,12 +53,14 @@ extension HttpClientExtension on HttpClient {
       } else if (w3AHeader.toLowerCase().contains('basic')) {
         self.auth = BasicAuth(user: self.auth.user, pwd: self.auth.pwd);
       } else {
-        // TODO
+        throw WebdavError(
+            error: '${response.reasonPhrase}(${response.statusCode})');
       }
       return this.req(self, method, path,
           data: data, intercept: intercept, cancelToken: cancelToken);
     } else if (response.statusCode == 401) {
-      // TODO
+      throw WebdavError(
+          error: '${response.reasonPhrase}(${response.statusCode})');
     }
 
     return response;
@@ -125,8 +127,9 @@ extension HttpClientExtension on HttpClient {
     if (status == 201 || status == 204 || status == 207) {
       return;
     } else if (status == 409) {
-      await this._createParent(self, newPath);
-      return this.copyMove(self, oldPath, newPath, isCopy, overwrite);
+      await this._createParent(self, newPath, cancelToken: cancelToken);
+      return this.copyMove(self, oldPath, newPath, isCopy, overwrite,
+          cancelToken: cancelToken);
     } else {
       throw WebdavError(error: '${resp.reasonPhrase}(${resp.statusCode})');
     }
@@ -141,5 +144,35 @@ extension HttpClientExtension on HttpClient {
       return null;
     }
     return self.mkdirAll(path, cancelToken);
+  }
+
+  //
+  Future<List<int>> read(Client self, String path,
+      {CancelToken cancelToken}) async {
+    var resp = await this.req(self, 'GET', path, cancelToken: cancelToken);
+    if (resp.statusCode != 200) {
+      throw WebdavError(error: '${resp.reasonPhrase}(${resp.statusCode})');
+    }
+    var data = List<int>();
+    var list = await resp.toList();
+    list.forEach((d) => data.addAll(d));
+
+    return data;
+  }
+
+  //
+  Future<void> write(Client self, String path, Uint8List data,
+      {CancelToken cancelToken}) async {
+    var resp =
+        await this.req(self, 'PUT', path, data: data, cancelToken: cancelToken);
+
+    var status = resp.statusCode;
+    if (status == 200 || status == 201 || status == 204) {
+      return;
+    } else if (status == 409) {
+      await this._createParent(self, path, cancelToken: cancelToken);
+      return this.write(self, path, data, cancelToken: cancelToken);
+    }
+    throw WebdavError(error: '${resp.reasonPhrase}(${resp.statusCode})');
   }
 }

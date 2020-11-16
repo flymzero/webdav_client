@@ -1,5 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' show HttpClient;
+import 'dart:io' as io show File;
+import 'dart:typed_data';
 
 import 'package:meta/meta.dart';
 
@@ -102,13 +104,39 @@ class Client {
   }
 
   //
-  Future<void> rename(String oldPath, String newPath, bool overwrite, [CancelToken cancelToken]){
+  Future<void> rename(String oldPath, String newPath, bool overwrite,
+      [CancelToken cancelToken]) {
     return this.c.copyMove(this, oldPath, newPath, false, overwrite);
   }
 
   //
-  Future<void> copy(String oldPath, String newPath, bool overwrite, [CancelToken cancelToken]){
+  Future<void> copy(String oldPath, String newPath, bool overwrite,
+      [CancelToken cancelToken]) {
     return this.c.copyMove(this, oldPath, newPath, true, overwrite);
+  }
+
+  //
+  Future<List<int>> read(String path, [CancelToken cancelToken]) {
+    return this.c.read(this, path, cancelToken: cancelToken);
+  }
+
+  //
+  Future<void> read2File(String path, String localFilePath,
+      [CancelToken cancelToken]) async {
+    var bytes = await this.c.read(this, path, cancelToken: cancelToken);
+    await io.File(localFilePath).writeAsBytes(bytes);
+  }
+
+  //
+  Future<void> write(String path, Uint8List data, [CancelToken cancelToken]) {
+    return this.c.write(this, path, data, cancelToken: cancelToken);
+  }
+
+  //
+  Future<void> writeFromFile(String path, String localFilePath,
+      [CancelToken cancelToken]) async {
+    var data = await io.File(localFilePath).readAsBytes();
+    return this.c.write(this, path, data, cancelToken: cancelToken);
   }
 }
 

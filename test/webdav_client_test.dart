@@ -72,4 +72,20 @@ void main() {
       await client.copy('/我的坚果云/【01】坚果云入门基础知识.pdf', '/2/heihei/jj.pdf', true);
     });
   });
+
+  group('read', () {
+    test('read remote file', () async {
+      await client.read('/我的坚果云/【01】坚果云入门基础知识.pdf');
+    });
+
+    test('read remote file 2 local file', () async {
+      await client.read2File('/我的坚果云/【02】坚果云进阶使用技巧.pdf',
+          'C:/Users/STAR-X/Desktop/【02】坚果云进阶使用技巧.pdf');
+    });
+  });
+
+  test('write', () async {
+    await client.writeFromFile(
+        '/我的坚果云/openvpn.exe', 'C:/Users/STAR-X/Downloads/openvpn.exe');
+  });
 }
