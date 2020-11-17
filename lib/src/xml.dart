@@ -1,6 +1,5 @@
 import 'package:xml/xml.dart';
 
-import 'error.dart';
 import 'file.dart';
 import 'utils.dart';
 
@@ -51,8 +50,7 @@ class WebdavXml {
               if (isDir) {
                 break;
               }
-              throw WebdavError(
-                  type: WebdavErrorType.XML, error: 'xml parse error(405)');
+              throw newXmlError('xml parse error(405)');
             }
 
             // mimeType

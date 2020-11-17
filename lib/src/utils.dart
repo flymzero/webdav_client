@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:convert/convert.dart';
+import 'package:dio/dio.dart';
 import 'md5.dart';
 
 const months = {
@@ -50,6 +51,22 @@ DateTime str2LocalTime(String str) {
   return DateTime.parse(
           '${list[3]}-$month-${list[1].padLeft(2, '0')}T${list[4]}Z')
       .toLocal();
+}
+
+// create response error
+DioError newResponseError(Response resp) {
+  return DioError(
+      request: resp.request,
+      response: resp,
+      type: DioErrorType.RESPONSE,
+      error: resp.statusMessage);
+}
+
+// create xml error
+DioError newXmlError(dynamic err) {
+  return DioError(
+      type: DioErrorType.DEFAULT,
+      error: err);
 }
 
 // 16进制字符串随机数
