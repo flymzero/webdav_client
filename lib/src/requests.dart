@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:dio/dio.dart';
+
 import 'auth.dart';
 import 'client.dart';
 import 'error.dart';
@@ -24,9 +26,9 @@ extension HttpClientExtension on HttpClient {
       ..followRedirects = false
       ..persistentConnection = false;
 
-    self.headers.forEach((key, value) {
-      request.headers.set(key, value);
-    });
+    // self.headers.forEach((key, value) {
+    //   request.headers.set(key, value);
+    // });
 
     String str = self.auth.authorize(method, path);
     if (str != null) {
@@ -143,7 +145,7 @@ extension HttpClientExtension on HttpClient {
     if (parentPath == '' || parentPath == '/') {
       return null;
     }
-    return self.mkdirAll(path, cancelToken);
+    // return self.mkdirAll(path, cancelToken);
   }
 
   //
