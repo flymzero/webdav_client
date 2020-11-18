@@ -1,7 +1,6 @@
 name: webdav_client
 description: A dart WebDAV client library
 version: 0.0.1
-author: flyzero
 homepage: https://github.com/flymzero/webdav_client
 
 environment:
@@ -10,6 +9,8 @@ environment:
 dependencies:
   dio: ^3.0.10
   xml: ^4.5.1
+  meta: ^1.2.3
+  convert: ^2.1.1
 
 dev_dependencies:
   test: '>=1.0.0 <2.0.0'
