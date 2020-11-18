@@ -1,16 +1,27 @@
+import 'package:dio/dio.dart';
 import 'package:test/test.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {
-  // var client = webdav.newClient('https://dav.jianguoyun.com/dav/',
-  //     user: 'flymzero@gmail.com', password: 'a7ij5ru5qp3hpydf', debug: true);
-
-  var client = webdav.newClient('http://192.168.0.101:6688/',
-      user: 'flyzero', password: '123456');
+  var client = webdav.newClient(
+    'http://localhost:6688/',
+    user: 'flyzero',
+    password: '123456',
+    debug: true,
+  );
 
   // test ping
-  test('ping', () async {
-    await client.ping();
+  test('common settings', () async {
+    client.setHeaders({'accept-charset': 'utf-8'});
+    client.setConnectTimeout(8000);
+    client.setSendTimeout(8000);
+    client.setReceiveTimeout(8000);
+
+    try {
+      await client.ping();
+    } catch (e) {
+      print('$e');
+    }
   });
 
   // make folder
@@ -20,7 +31,7 @@ void main() {
 
   // make all folder
   test('make all folder', () async {
-    await client.mkdirAll('/newFolder2/newFolder3/newFolder4');
+    await client.mkdirAll('/new folder/new folder2');
   });
 
   // test readDir
@@ -28,15 +39,15 @@ void main() {
     test('read root path', () async {
       var list = await client.readDir('/');
       list.forEach((f) {
-        print(f.name);
-        print(f.mTime.toString());
+        print('${f.name} ${f.path}');
       });
     });
 
     test('read sub path', () async {
       // need change real folder name
-      var list = await client.readDir('/2');
+      var list = await client.readDir('/new folder');
       list.forEach((f) {
+        print(f.path);
         print(f.name);
         print(f.mTime.toString());
       });
@@ -46,18 +57,18 @@ void main() {
   // remove
   group('remove', () {
     test('remove a folder', () async {
-      await client.remove('/newFolder2/newFolder3');
+      await client.remove('/new folder/new folder2/');
     });
 
     test('remove a file', () async {
-      await client.remove('/我的坚果云/CMMX4615.zip');
+      await client.remove('/new folder/新建文本文档.txt');
     });
   });
 
   // rename
   group('rename', () {
     test('rename a folder', () async {
-      await client.rename('/新建文件夹', '/新建文件夹2', true);
+      await client.rename('/新建文件夹/', '/新建文件夹2/', true);
     });
 
     test('rename a file', () async {
@@ -66,28 +77,38 @@ void main() {
   });
 
   group('copy', () {
+    // 如果是文件夹，有些webdav服务，会把文件夹A内的所有复制到B文件夹内且删除B文件夹内的所有数据
     test('copy a folder', () async {
-      await client.copy('/2/heihei', '/我的坚果云/bb', true);
+      await client.copy('/新建文件夹/新建文件夹2/', '/new folder/folder/', true);
     });
 
     test('copy a file', () async {
-      await client.copy('/我的坚果云/【01】坚果云入门基础知识.pdf', '/2/heihei/jj.pdf', true);
+      await client.copy(
+          '/新建文件夹2/新建文件夹/新建位图图像.bmp', '/new folder/folder/copy.bmp', true);
     });
   });
 
   group('read', () {
     test('read remote file', () async {
-      await client.read('/我的坚果云/【01】坚果云入门基础知识.pdf');
+      await client.read('/new folder/folder/openvpn.exe');
     });
 
     test('read remote file 2 local file', () async {
-      await client.read2File('/我的坚果云/【02】坚果云进阶使用技巧.pdf',
-          'C:/Users/STAR-X/Desktop/【02】坚果云进阶使用技巧.pdf');
+      await client.read2File(
+          '/new folder/folder/openvpn.exe', 'C:/Users/STAR-X/Desktop/vpn.exe');
     });
   });
 
   test('write', () async {
-    await client.writeFromFile(
-        '/我的坚果云/openvpn.exe', 'C:/Users/STAR-X/Downloads/openvpn.exe');
-  });
+    CancelToken cancel = CancelToken();
+
+    client
+        .writeFromFile('C:/Users/STAR-X/Desktop/vpn.exe', '/f/vpn2.exe', cancel)
+        .catchError((err) {
+      prints(err.toString());
+    });
+
+    await Future.delayed(Duration(seconds: 5))
+        .then((_) => cancel.cancel('reason'));
+  }, timeout: Timeout(Duration(minutes: 2)));
 }

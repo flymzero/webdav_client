@@ -27,7 +27,7 @@ class WdDio extends DioForNative {
     this.options.followRedirects = false;
 
     // 状态码错误视为成功
-    this.options.validateStatus = (status)=>true;
+    this.options.validateStatus = (status) => true;
 
     // 拦截器
     if (interceptorList != null) {
@@ -62,14 +62,14 @@ class WdDio extends DioForNative {
     // authorization
     String str = self.auth.authorize(method, path);
     if (str != null) {
-      options.headers['Authorization'] = str;
+      options.headers['authorization'] = str;
     }
 
     var resp = await this.requestUri(Uri.parse('${join(self.uri, path)}'),
         options: options, data: data, cancelToken: cancelToken);
 
     if (resp.statusCode == 401 && self.auth.type == AuthType.NoAuth) {
-      String w3AHeader = resp.headers.value('Www-Authenticate');
+      String w3AHeader = resp.headers.value('www-authenticate');
       // Digest
       if (w3AHeader.toLowerCase().contains('digest')) {
         self.auth = DigestAuth(
@@ -99,18 +99,22 @@ class WdDio extends DioForNative {
   // OPTIONS
   Future<Response> wdOptions(Client self, String path,
       {CancelToken cancelToken}) {
-    return this.req(self, 'OPTIONS', path, optionsHandler: (options)=>options.headers['Depth'] = '0', cancelToken: cancelToken);
+    return this.req(self, 'OPTIONS', path,
+        optionsHandler: (options) => options.headers['depth'] = '0',
+        cancelToken: cancelToken);
   }
 
   // PROPFIND
-  Future<Response> wdPropfind(Client self, String path, bool depth, String dataStr,
-      {CancelToken cancelToken}) async{
-    var resp = await this.req(self, 'PROPFIND', path, data: utf8.encode(dataStr), optionsHandler: (options){
-      options.headers['Depth'] = depth ? '1' : '0';
-      options.headers['Content-Type'] = 'application/xml;charset=UTF-8';
-      options.headers['Accept'] = 'application/xml,text/xml';
-      options.headers['Accept-Charset'] = 'utf-8';
-      options.headers['Accept-Encoding'] = '';
+  Future<Response> wdPropfind(
+      Client self, String path, bool depth, String dataStr,
+      {CancelToken cancelToken}) async {
+    var resp = await this.req(self, 'PROPFIND', path,
+        data: utf8.encode(dataStr), optionsHandler: (options) {
+      options.headers['depth'] = depth ? '1' : '0';
+      options.headers['content-type'] = 'application/xml;charset=UTF-8';
+      options.headers['accept'] = 'application/xml,text/xml';
+      options.headers['accept-charset'] = 'utf-8';
+      options.headers['accept-encoding'] = '';
     }, cancelToken: cancelToken);
 
     if (resp.statusCode != 207) {
@@ -121,22 +125,25 @@ class WdDio extends DioForNative {
   }
 
   // MKCOL
-  Future<Response> wdMkcol(Client self, String path, {CancelToken cancelToken}){
+  Future<Response> wdMkcol(Client self, String path,
+      {CancelToken cancelToken}) {
     return this.req(self, 'MKCOL', path, cancelToken: cancelToken);
   }
 
   // DELETE
-  Future<Response> wdDelete(Client self, String path, {CancelToken cancelToken}){
+  Future<Response> wdDelete(Client self, String path,
+      {CancelToken cancelToken}) {
     return this.req(self, 'DELETE', path, cancelToken: cancelToken);
   }
 
   // COPY OR MOVE
-  Future<void> wdCopyMove(Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
-      {CancelToken cancelToken})async{
+  Future<void> wdCopyMove(
+      Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
+      {CancelToken cancelToken}) async {
     var method = isCopy == true ? 'COPY' : 'MOVE';
-    var resp = await this.req(self, method, oldPath, optionsHandler: (options){
-      options.headers['Destination'] = Uri.encodeFull(join(self.uri, newPath));
-      options.headers['Overwrite'] = overwrite == true ? 'T' : 'F';
+    var resp = await this.req(self, method, oldPath, optionsHandler: (options) {
+      options.headers['destination'] = Uri.encodeFull(join(self.uri, newPath));
+      options.headers['overwrite'] = overwrite == true ? 'T' : 'F';
     }, cancelToken: cancelToken);
 
     var status = resp.statusCode;
@@ -156,17 +163,19 @@ class WdDio extends DioForNative {
   Future<void> _createParent(Client self, String path,
       {CancelToken cancelToken}) {
     var parentPath = path.substring(0, path.lastIndexOf('/') + 1);
-    ;
+
     if (parentPath == '' || parentPath == '/') {
       return null;
     }
-    return self.mkdirAll(path, cancelToken);
+    return self.mkdirAll(parentPath, cancelToken);
   }
 
   // read a file
   Future<List<int>> wdRead(Client self, String path,
       {CancelToken cancelToken}) async {
-    var resp = await this.req(self, 'GET', path, optionsHandler: (options)=>options.responseType = ResponseType.bytes, cancelToken: cancelToken);
+    var resp = await this.req(self, 'GET', path,
+        optionsHandler: (options) => options.responseType = ResponseType.bytes,
+        cancelToken: cancelToken);
     if (resp.statusCode != 200) {
       throw newResponseError(resp);
     }
@@ -175,9 +184,12 @@ class WdDio extends DioForNative {
 
   // write a file
   Future<void> wdWrite(Client self, String path, Uint8List data,
-      {CancelToken cancelToken}) async{
-    var resp =
-    await this.req(self, 'PUT', path, data: data, cancelToken: cancelToken);
+      {CancelToken cancelToken}) async {
+    var resp = await this.req(self, 'PUT', path,
+        data: Stream.fromIterable(data.map((e) => [e])),
+        optionsHandler: (options) =>
+            options.headers['content-length'] = data.length,
+        cancelToken: cancelToken);
     var status = resp.statusCode;
     if (status == 200 || status == 201 || status == 204) {
       return;
