@@ -1,3 +1,10 @@
-## [0.0.1] - TODO: Add release date.
+## [0.0.1] - The first version commits and supports most features.
 
-* TODO: Describe initial release.
+* common settings
+* read dir
+* make dir
+* delete
+* rename
+* copy
+* download file
+* cancel request
