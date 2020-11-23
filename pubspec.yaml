@@ -1,6 +1,7 @@
 name: webdav_client
-description: A dart WebDAV client library
-version: 0.0.1
+description: A dart WebDAV client library, use dio as http client. * support Basic/Digest authentication * common settings * read dir * make dir * delete * rename * copy * download file * upload file * cancel request 
+
+version: 0.0.2
 homepage: https://github.com/flymzero/webdav_client
 
 environment:

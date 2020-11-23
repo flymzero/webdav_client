@@ -20,8 +20,8 @@ abstract class _HashBase {
 
   _HashBase(this._chunkSizeInWords, int digestSizeInWords, this._bigEndianWords)
       : _pendingData = [],
-        _currentChunk = new List.filled(_chunkSizeInWords, 0),
-        _h = new List.filled(digestSizeInWords, 0);
+        _currentChunk = List.filled(_chunkSizeInWords, 0),
+        _h = List.filled(digestSizeInWords, 0);
 
   // Update the hasher with more data.
   add(List<int> data) {
