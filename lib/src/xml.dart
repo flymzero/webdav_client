@@ -14,6 +14,13 @@ const fileXmlStr = '''<d:propfind xmlns:d='DAV:'>
 			</d:prop>
 		</d:propfind>''';
 
+// const quotaXmlStr = '''<d:propfind xmlns:d="DAV:">
+//            <d:prop>
+//              <d:quota-available-bytes/>
+//              <d:quota-used-bytes/>
+//            </d:prop>
+//          </d:propfind>''';
+
 class WebdavXml {
   static List<XmlElement> findAllElements(XmlDocument document, String tag) =>
       document.findAllElements(tag, namespace: '*').toList();

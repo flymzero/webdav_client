@@ -39,11 +39,16 @@ class Client {
 
   // Test whether the service can connect
   Future<void> ping([CancelToken cancelToken]) async {
-    var resp = await c.wdOptions(this, '/');
+    var resp = await c.wdOptions(this, '/', cancelToken: cancelToken);
     if (resp.statusCode != 200) {
       throw newResponseError(resp);
     }
   }
+
+  // Future<void> getQuota([CancelToken cancelToken]) async {
+  //   var resp = await c.wdQuota(this, quotaXmlStr, cancelToken: cancelToken);
+  //   print(resp);
+  // }
 
   // Read all files in a folder
   Future<List<File>> readDir(String path, [CancelToken cancelToken]) async {

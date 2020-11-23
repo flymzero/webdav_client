@@ -5,6 +5,7 @@ A dart WebDAV client library, **use [dio](https://github.com/flutterchina/dio) a
 
 ## Main features
 
+* support ``Basic/Digest`` authentication
 * [common settings](#common-settings)
 * [read dir](#read-all-files-in-a-folder)
 * [make dir](#create-folder)

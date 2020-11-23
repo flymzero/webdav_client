@@ -68,29 +68,42 @@ class WdDio extends DioForNative {
     var resp = await this.requestUri(Uri.parse('${join(self.uri, path)}'),
         options: options, data: data, cancelToken: cancelToken);
 
-    if (resp.statusCode == 401 && self.auth.type == AuthType.NoAuth) {
+    if (resp.statusCode == 401) {
       String w3AHeader = resp.headers.value('www-authenticate');
-      // Digest
-      if (w3AHeader.toLowerCase().contains('digest')) {
+      String lowerW3AHeader = w3AHeader.toLowerCase();
+
+      // before is noAuth
+      if (self.auth.type == AuthType.NoAuth) {
+        // Digest
+        if (lowerW3AHeader.contains('digest')) {
+          self.auth = DigestAuth(
+              user: self.auth.user,
+              pwd: self.auth.pwd,
+              dParts: DigestParts(w3AHeader));
+        }
+        // Basic
+        else if (lowerW3AHeader.contains('basic')) {
+          self.auth = BasicAuth(user: self.auth.user, pwd: self.auth.pwd);
+        }
+        // error
+        else {
+          throw newResponseError(resp);
+        }
+      }
+      // before is digest and Nonce Lifetime is out
+      else if (self.auth.type == AuthType.DigestAuth &&
+          lowerW3AHeader.contains('stale=true')) {
         self.auth = DigestAuth(
             user: self.auth.user,
             pwd: self.auth.pwd,
             dParts: DigestParts(w3AHeader));
-      }
-      // Basic
-      else if (w3AHeader.toLowerCase().contains('basic')) {
-        self.auth = BasicAuth(user: self.auth.user, pwd: self.auth.pwd);
-      }
-      // error
-      else {
+      } else {
         throw newResponseError(resp);
       }
 
       // retry
       return this.req(self, method, path,
           data: data, optionsHandler: optionsHandler, cancelToken: cancelToken);
-    } else if (resp.statusCode == 401) {
-      throw newResponseError(resp);
     }
 
     return resp;
@@ -103,6 +116,16 @@ class WdDio extends DioForNative {
         optionsHandler: (options) => options.headers['depth'] = '0',
         cancelToken: cancelToken);
   }
+
+  // // quota
+  // Future<Response> wdQuota(Client self, String dataStr,
+  //     {CancelToken cancelToken}) {
+  //   return this.req(self, 'PROPFIND', '/', data: utf8.encode(dataStr),
+  //       optionsHandler: (options) {
+  //     options.headers['depth'] = '0';
+  //     options.headers['accept'] = 'text/plain';
+  //   }, cancelToken: cancelToken);
+  // }
 
   // PROPFIND
   Future<Response> wdPropfind(
