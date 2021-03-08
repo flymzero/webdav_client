@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:meta/meta.dart';
 import 'dart:io' as io;
 import 'auth.dart';
 import 'file.dart';
@@ -16,10 +15,10 @@ class Client {
   bool debug;
 
   Client({
-    @required this.uri,
-    @required this.c,
-    @required this.auth,
-    this.debug,
+    required this.uri,
+    required this.c,
+    required this.auth,
+    this.debug = false,
   });
 
   // methods--------------------------------
@@ -38,7 +37,7 @@ class Client {
   void setReceiveTimeout(int timout) => this.c.options.receiveTimeout = timout;
 
   // Test whether the service can connect
-  Future<void> ping([CancelToken cancelToken]) async {
+  Future<void> ping([CancelToken? cancelToken]) async {
     var resp = await c.wdOptions(this, '/', cancelToken: cancelToken);
     if (resp.statusCode != 200) {
       throw newResponseError(resp);
@@ -51,7 +50,7 @@ class Client {
   // }
 
   // Read all files in a folder
-  Future<List<File>> readDir(String path, [CancelToken cancelToken]) async {
+  Future<List<File>> readDir(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
     var resp = await this
         .c
@@ -62,7 +61,7 @@ class Client {
   }
 
   // Create a folder
-  Future<void> mkdir(String path, [CancelToken cancelToken]) async {
+  Future<void> mkdir(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
     var resp = await this.c.wdMkcol(this, path, cancelToken: cancelToken);
     var status = resp.statusCode;
@@ -72,7 +71,7 @@ class Client {
   }
 
   // Recursively create folders
-  Future<void> mkdirAll(String path, [CancelToken cancelToken]) async {
+  Future<void> mkdirAll(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
     var resp = await this.c.wdMkcol(this, path, cancelToken: cancelToken);
     var status = resp.statusCode;
@@ -99,12 +98,12 @@ class Client {
 
   // Remove a folder or file
   // If you remove the folder, some webdav services require a '/' at the end of the path.
-  Future<void> remove(String path, [CancelToken cancelToken]) {
+  Future<void> remove(String path, [CancelToken? cancelToken]) {
     return removeAll(path, cancelToken);
   }
 
   // Remove files
-  Future<void> removeAll(String path, [CancelToken cancelToken]) async {
+  Future<void> removeAll(String path, [CancelToken? cancelToken]) async {
     var resp = await this.c.wdDelete(this, path, cancelToken: cancelToken);
     if (resp.statusCode == 200 ||
         resp.statusCode == 204 ||
@@ -117,7 +116,7 @@ class Client {
   // Rename a folder or file
   // If you rename the folder, some webdav services require a '/' at the end of the path.
   Future<void> rename(String oldPath, String newPath, bool overwrite,
-      [CancelToken cancelToken]) {
+      [CancelToken? cancelToken]) {
     return this.c.wdCopyMove(this, oldPath, newPath, false, overwrite);
   }
 
@@ -125,30 +124,30 @@ class Client {
   // If copied the folder (A > B), it will copy all the contents of folder A to folder B.
   // Some webdav services have been tested and found to delete the original contents of the B folder!!!
   Future<void> copy(String oldPath, String newPath, bool overwrite,
-      [CancelToken cancelToken]) {
+      [CancelToken? cancelToken]) {
     return this.c.wdCopyMove(this, oldPath, newPath, true, overwrite);
   }
 
   // Read the bytes of a file
-  Future<List<int>> read(String path, [CancelToken cancelToken]) {
+  Future<List<int>> read(String path, [CancelToken? cancelToken]) {
     return this.c.wdRead(this, path, cancelToken: cancelToken);
   }
 
   // Read the bytes of a file and write to a local file
   Future<void> read2File(String path, String localFilePath,
-      [CancelToken cancelToken]) async {
+      [CancelToken? cancelToken]) async {
     var bytes = await this.c.wdRead(this, path, cancelToken: cancelToken);
     await io.File(localFilePath).writeAsBytes(bytes);
   }
 
   // Write the bytes to remote path
-  Future<void> write(String path, Uint8List data, [CancelToken cancelToken]) {
+  Future<void> write(String path, Uint8List data, [CancelToken? cancelToken]) {
     return this.c.wdWrite(this, path, data, cancelToken: cancelToken);
   }
 
   // Read local file bytes and write to remote file
   Future<void> writeFromFile(String localFilePath, String path,
-      [CancelToken cancelToken]) async {
+      [CancelToken? cancelToken]) async {
     var data = await io.File(localFilePath).readAsBytes();
     return this.c.wdWrite(this, path, data, cancelToken: cancelToken);
   }

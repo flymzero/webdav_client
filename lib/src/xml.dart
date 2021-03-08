@@ -29,7 +29,7 @@ class WebdavXml {
       element.findElements(tag, namespace: '*').toList();
 
   static List<File> toFiles(String path, String xmlStr) {
-    var files = List<File>();
+    var files = <File>[];
     var xmlDocument = XmlDocument.parse(xmlStr);
     List<XmlElement> list = findAllElements(xmlDocument, 'response');
     bool skipSelf = true;
@@ -81,13 +81,13 @@ class WebdavXml {
 
             // create time
             final cTimeElements = findElements(prop, 'creationdate');
-            DateTime cTime = cTimeElements.isNotEmpty
+            DateTime? cTime = cTimeElements.isNotEmpty
                 ? DateTime.parse(cTimeElements.single.text).toLocal()
                 : null;
 
             // modified time
             final mTimeElements = findElements(prop, 'getlastmodified');
-            DateTime mTime = mTimeElements.isNotEmpty
+            DateTime? mTime = mTimeElements.isNotEmpty
                 ? str2LocalTime(mTimeElements.single.text)
                 : null;
 
