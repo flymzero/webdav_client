@@ -31,7 +31,7 @@ String md5Hash(String data) {
   return result.toString();
 }
 
-DateTime str2LocalTime(String str) {
+DateTime? str2LocalTime(String? str) {
   if (str == null) {
     return null;
   }
@@ -54,18 +54,18 @@ DateTime str2LocalTime(String str) {
 }
 
 // create response error
-DioError newResponseError(Response resp) {
+DioError newResponseError(Response? resp) {
   return DioError(
-      request: resp.request,
+      request: resp?.request,
       response: resp,
-      type: DioErrorType.RESPONSE,
-      error: resp.statusMessage);
+      type: DioErrorType.response,
+      error: resp?.statusMessage);
 }
 
 // create xml error
 DioError newXmlError(dynamic err) {
   return DioError(
-      type: DioErrorType.DEFAULT,
+      type: DioErrorType.other,
       error: err);
 }
 
@@ -76,18 +76,18 @@ String computeNonce() {
   return hex.encode(values).substring(0, 16);
 }
 
-String trim(String str, [String chars]) {
+String trim(String str, [String? chars]) {
   RegExp pattern =
       (chars != null) ? RegExp('^[$chars]+|[$chars]+\$') : RegExp(r'^\s+|\s+$');
   return str.replaceAll(pattern, '');
 }
 
-String ltrim(String str, [String chars]) {
+String ltrim(String str, [String? chars]) {
   var pattern = chars != null ? new RegExp('^[$chars]+') : new RegExp(r'^\s+');
   return str.replaceAll(pattern, '');
 }
 
-String rtrim(String str, [String chars]) {
+String rtrim(String str, [String? chars]) {
   var pattern = chars != null ? new RegExp('[$chars]+\$') : new RegExp(r'\s+$');
   return str.replaceAll(pattern, '');
 }

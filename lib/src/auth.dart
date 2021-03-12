@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
-
 import 'utils.dart';
 
 // Auth type
@@ -17,21 +15,21 @@ class Auth {
   final String pwd;
 
   Auth({
-    String user,
-    String pwd,
-  })  : this.user = user ?? '',
-        this.pwd = pwd ?? '';
+    required String user,
+    required String pwd,
+  })   : this.user = user,
+        this.pwd = pwd;
 
   AuthType get type => AuthType.NoAuth;
 
-  String authorize(String method, String path) => null;
+  String? authorize(String method, String path) => null;
 }
 
 // BasicAuth
 class BasicAuth extends Auth {
   BasicAuth({
-    @required String user,
-    @required String pwd,
+    required String user,
+    required String pwd,
   }) : super(
           user: user,
           pwd: pwd,
@@ -61,7 +59,7 @@ class DigestParts {
     'entityBody': '',
   };
 
-  DigestParts(String authHeader) {
+  DigestParts(String? authHeader) {
     if (authHeader != null) {
       var keys = parts.keys;
       var list = authHeader.split(',');
@@ -84,20 +82,25 @@ class DigestAuth extends Auth {
   DigestParts dParts;
 
   DigestAuth({
-    @required String user,
-    @required String pwd,
-    @required this.dParts,
+    required String user,
+    required String pwd,
+    required this.dParts,
   }) : super(
           user: user,
           pwd: pwd,
         );
 
-  String get nonce => this.dParts.parts['nonce'];
-  String get realm => this.dParts.parts['realm'];
-  String get qop => this.dParts.parts['qop'];
-  String get opaque => this.dParts.parts['opaque'];
-  String get algorithm => this.dParts.parts['algorithm'];
-  String get entityBody => this.dParts.parts['entityBody'];
+  String? get nonce => this.dParts.parts['nonce'];
+
+  String? get realm => this.dParts.parts['realm'];
+
+  String? get qop => this.dParts.parts['qop'];
+
+  String? get opaque => this.dParts.parts['opaque'];
+
+  String? get algorithm => this.dParts.parts['algorithm'];
+
+  String? get entityBody => this.dParts.parts['entityBody'];
 
   @override
   AuthType get type => AuthType.DigestAuth;
@@ -116,14 +119,13 @@ class DigestAuth extends Auth {
     String ha1 = _computeHA1(nonceCount, cnonce);
     String ha2 = _computeHA2();
     String response = _computeResponse(ha1, ha2, nonceCount, cnonce);
-    String authorization =
-        'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
+    String authorization = 'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
 
-    if (this.qop.isNotEmpty) {
+    if (this.qop?.isNotEmpty == true) {
       authorization += ', qop=${this.qop}';
     }
 
-    if (this.opaque.isNotEmpty) {
+    if (this.opaque?.isNotEmpty == true) {
       authorization += ', opaque=${this.opaque}';
     }
 
@@ -132,9 +134,9 @@ class DigestAuth extends Auth {
 
   //
   String _computeHA1(int nonceCount, String cnonce) {
-    String algorithm = this.algorithm;
+    String? algorithm = this.algorithm;
 
-    if (algorithm == 'MD5' || algorithm.isEmpty) {
+    if (algorithm == 'MD5' || algorithm?.isNotEmpty != true) {
       return md5Hash('${this.user}:${this.realm}:${this.pwd}');
     } else if (algorithm == 'MD5-sess') {
       String md5Str = md5Hash('${this.user}:${this.realm}:${this.pwd}');
@@ -146,24 +148,22 @@ class DigestAuth extends Auth {
 
   //
   String _computeHA2() {
-    String qop = this.qop;
+    String? qop = this.qop;
 
-    if (qop == 'auth' || qop.isEmpty) {
+    if (qop == 'auth' || qop?.isEmpty != false) {
       return md5Hash('${this.dParts.method}:${this.dParts.uri}');
-    } else if (qop == 'auth-int' && this.entityBody.isEmpty == false) {
-      return md5Hash(
-          '${this.dParts.method}:${this.dParts.uri}:${md5Hash(this.entityBody)}');
+    } else if (qop == 'auth-int' && this.entityBody?.isEmpty == false) {
+      return md5Hash('${this.dParts.method}:${this.dParts.uri}:${md5Hash(this.entityBody!)}');
     }
 
     return '';
   }
 
   //
-  String _computeResponse(
-      String ha1, String ha2, int nonceCount, String cnonce) {
-    String qop = this.qop;
+  String _computeResponse(String ha1, String ha2, int nonceCount, String cnonce) {
+    String? qop = this.qop;
 
-    if (qop.isEmpty) {
+    if (qop?.isEmpty != false) {
       return md5Hash('$ha1:${this.nonce}:$ha2');
     } else if (qop == 'auth' || qop == 'auth-int') {
       return md5Hash('$ha1:${this.nonce}:$nonceCount:$cnonce:$qop:$ha2');

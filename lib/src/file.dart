@@ -1,12 +1,12 @@
 class File {
-  String path;
-  bool isDir;
-  String name;
-  String mimeType;
-  int size;
-  String eTag;
-  DateTime cTime;
-  DateTime mTime;
+  String? path;
+  bool? isDir;
+  String? name;
+  String? mimeType;
+  int? size;
+  String? eTag;
+  DateTime? cTime;
+  DateTime? mTime;
 
   File({
   this.path,
