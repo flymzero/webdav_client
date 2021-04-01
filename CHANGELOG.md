@@ -1,4 +1,14 @@
-## [0.0.1] - The first version commits and supports most features.
+# Changelog
+
+## [1.0.0]
+
+- support null-safety
+
+## [0.0.2] 
+
+- fix when server nonce expired, add recertification Logic.
+
+## [0.0.1] 
 
 * common settings
 * read dir
@@ -8,7 +18,3 @@
 * copy
 * download file
 * cancel request
-
-## [0.0.2] - fix digest authentication bug
-
-- fix when server nonce expired, add recertification Logic.

@@ -4,9 +4,9 @@ import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {
   var client = webdav.newClient(
-    'http://localhost:6688/',
-    user: 'flyzero',
-    password: '123456',
+    'http://127.0.0.1:80/',
+    user: 'alice',
+    password: 'secret1234',
     debug: true,
   );
 
@@ -72,7 +72,7 @@ void main() {
     });
 
     test('rename a file', () async {
-      await client.rename('/新建文件夹2/test.dart', '/新建文件夹2/test2.dart', true);
+      await client.rename('/新建文件夹/test.dart.txt', '/新建文件夹/test2.dart', true);
     });
   });
 
@@ -83,19 +83,17 @@ void main() {
     });
 
     test('copy a file', () async {
-      await client.copy(
-          '/新建文件夹2/新建文件夹/新建位图图像.bmp', '/new folder/folder/copy.bmp', true);
+      await client.copy('/新建文件夹/test2.dart', '/new folder/copy.bmp', true);
     });
   });
 
   group('read', () {
     test('read remote file', () async {
-      await client.read('/new folder/folder/openvpn.exe');
+      await client.read('/f/vpn2.exe');
     });
 
     test('read remote file 2 local file', () async {
-      await client.read2File(
-          '/new folder/folder/openvpn.exe', 'C:/Users/STAR-X/Desktop/vpn.exe');
+      await client.read2File('/f/vpn2.exe', 'F:/Users/STAR-X/Desktop/vpn2.exe');
     });
   });
 
@@ -103,7 +101,7 @@ void main() {
     CancelToken cancel = CancelToken();
 
     client
-        .writeFromFile('C:/Users/STAR-X/Desktop/vpn.exe', '/f/vpn2.exe', cancel)
+        .writeFromFile('C:/ToolLog.txt', '/f/ToolLog.txt', cancel)
         .catchError((err) {
       prints(err.toString());
     });

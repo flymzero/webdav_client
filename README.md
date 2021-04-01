@@ -1,6 +1,6 @@
 # webdav_client
 
-A dart WebDAV client library, **use [dio](https://github.com/flutterchina/dio) as http client**.
+A dart WebDAV client library(`support null-safety`), **use [dio](https://github.com/flutterchina/dio) as http client**.
 
 
 ## Main features

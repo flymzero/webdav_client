@@ -53,6 +53,9 @@ class WdDio extends DioForNative {
   }) async {
     // options
     Options options = Options(method: method);
+    if (options.headers == null) {
+      options.headers = {};
+    }
 
     // 二次处理options
     if (optionsHandler != null) {
@@ -61,7 +64,9 @@ class WdDio extends DioForNative {
 
     // authorization
     String? str = self.auth.authorize(method, path);
-    options.headers?['authorization'] = str;
+    if (str != null) {
+      options.headers?['authorization'] = str;
+    }
 
     var resp = await this.requestUri(Uri.parse('${join(self.uri, path)}'),
         options: options, data: data, cancelToken: cancelToken);

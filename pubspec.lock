@@ -84,7 +84,7 @@ packages:
       name: dio
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "4.0.0-beta6"
+    version: "4.0.0"
   glob:
     dependency: transitive
     description:
@@ -135,7 +135,7 @@ packages:
     source: hosted
     version: "0.12.10"
   meta:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: meta
       url: "https://pub.flutter-io.cn"

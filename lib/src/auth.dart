@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'utils.dart';
 
 // Auth type
@@ -119,7 +118,8 @@ class DigestAuth extends Auth {
     String ha1 = _computeHA1(nonceCount, cnonce);
     String ha2 = _computeHA2();
     String response = _computeResponse(ha1, ha2, nonceCount, cnonce);
-    String authorization = 'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
+    String authorization =
+        'Digest username="${this.user}", realm="${this.realm}", nonce="${this.nonce}", uri="${this.dParts.uri}", nc=$nonceCount, cnonce="$cnonce", response="$response"';
 
     if (this.qop?.isNotEmpty == true) {
       authorization += ', qop=${this.qop}';
@@ -136,7 +136,7 @@ class DigestAuth extends Auth {
   String _computeHA1(int nonceCount, String cnonce) {
     String? algorithm = this.algorithm;
 
-    if (algorithm == 'MD5' || algorithm?.isNotEmpty != true) {
+    if (algorithm == 'MD5' || algorithm?.isEmpty != false) {
       return md5Hash('${this.user}:${this.realm}:${this.pwd}');
     } else if (algorithm == 'MD5-sess') {
       String md5Str = md5Hash('${this.user}:${this.realm}:${this.pwd}');
@@ -153,14 +153,16 @@ class DigestAuth extends Auth {
     if (qop == 'auth' || qop?.isEmpty != false) {
       return md5Hash('${this.dParts.method}:${this.dParts.uri}');
     } else if (qop == 'auth-int' && this.entityBody?.isEmpty == false) {
-      return md5Hash('${this.dParts.method}:${this.dParts.uri}:${md5Hash(this.entityBody!)}');
+      return md5Hash(
+          '${this.dParts.method}:${this.dParts.uri}:${md5Hash(this.entityBody!)}');
     }
 
     return '';
   }
 
   //
-  String _computeResponse(String ha1, String ha2, int nonceCount, String cnonce) {
+  String _computeResponse(
+      String ha1, String ha2, int nonceCount, String cnonce) {
     String? qop = this.qop;
 
     if (qop?.isEmpty != false) {
