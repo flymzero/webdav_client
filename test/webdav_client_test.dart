@@ -4,9 +4,9 @@ import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {
   var client = webdav.newClient(
-    'http://127.0.0.1:80/',
-    user: 'alice',
-    password: 'secret1234',
+    'http://192.168.139.165:8090/remote.php/dav/files/admin/',
+    user: 'admin',
+    password: 'admin',
     debug: true,
   );
 
@@ -93,20 +93,21 @@ void main() {
     });
 
     test('read remote file 2 local file', () async {
-      await client.read2File('/f/vpn2.exe', 'F:/Users/STAR-X/Desktop/vpn2.exe');
+      await client.read2File('/Nextcloud intro.mp4', 'F:/download/test.mp4');
     });
   });
 
   test('write', () async {
     CancelToken cancel = CancelToken();
-
-    client
-        .writeFromFile('C:/ToolLog.txt', '/f/ToolLog.txt', cancel)
+    // await client.ping();
+    await client
+        .writeFromFile('F:/download/16194049777762.jpg', '/test2.jpg', cancel)
         .catchError((err) {
       prints(err.toString());
     });
+  });
 
-    await Future.delayed(Duration(seconds: 5))
-        .then((_) => cancel.cancel('reason'));
-  }, timeout: Timeout(Duration(minutes: 2)));
+  //   await Future.delayed(Duration(seconds: 500))
+  //       .then((_) => cancel.cancel('reason'));
+  // }, timeout: Timeout(Duration(minutes: 2)));
 }

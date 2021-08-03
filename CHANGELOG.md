@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.0]
+
+- Fix no authorization when uploading and downloading 
+- Related dependencies updated to the latest version
+
 ## [1.0.0]
 
 - support null-safety

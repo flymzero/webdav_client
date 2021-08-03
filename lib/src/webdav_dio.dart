@@ -8,11 +8,12 @@ import 'auth.dart';
 import 'client.dart';
 import 'utils.dart';
 
+/// Wrapped http client
 class WdDio extends DioForNative {
   // Request config
   BaseOptions? baseOptions;
 
-  // 拦截器
+  // Interceptors
   final List<Interceptor>? interceptorList;
 
   // debug
@@ -150,19 +151,19 @@ class WdDio extends DioForNative {
     return resp;
   }
 
-  // MKCOL
+  /// MKCOL
   Future<Response> wdMkcol(Client self, String path,
       {CancelToken? cancelToken}) {
     return this.req(self, 'MKCOL', path, cancelToken: cancelToken);
   }
 
-  // DELETE
+  /// DELETE
   Future<Response> wdDelete(Client self, String path,
       {CancelToken? cancelToken}) {
     return this.req(self, 'DELETE', path, cancelToken: cancelToken);
   }
 
-  // COPY OR MOVE
+  /// COPY OR MOVE
   Future<void> wdCopyMove(
       Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
       {CancelToken? cancelToken}) async {
@@ -185,7 +186,7 @@ class WdDio extends DioForNative {
     }
   }
 
-  // create parent folder
+  /// create parent folder
   Future<void>? _createParent(Client self, String path,
       {CancelToken? cancelToken}) {
     var parentPath = path.substring(0, path.lastIndexOf('/') + 1);
@@ -196,9 +197,15 @@ class WdDio extends DioForNative {
     return self.mkdirAll(parentPath, cancelToken);
   }
 
-  // read a file
+  /// read a file
   Future<List<int>> wdRead(Client self, String path,
       {CancelToken? cancelToken}) async {
+    // fix auth error
+    var pResp = await this.wdOptions(self, '/', cancelToken: cancelToken);
+    if (pResp.statusCode != 200) {
+      throw newResponseError(pResp);
+    }
+
     var resp = await this.req(self, 'GET', path,
         optionsHandler: (options) => options.responseType = ResponseType.bytes,
         cancelToken: cancelToken);
@@ -208,9 +215,15 @@ class WdDio extends DioForNative {
     return resp.data;
   }
 
-  // write a file
+  /// write a file
   Future<void> wdWrite(Client self, String path, Uint8List data,
       {CancelToken? cancelToken}) async {
+    // fix auth error
+    var pResp = await this.wdOptions(self, '/', cancelToken: cancelToken);
+    if (pResp.statusCode != 200) {
+      throw newResponseError(pResp);
+    }
+
     var resp = await this.req(self, 'PUT', path,
         data: Stream.fromIterable(data.map((e) => [e])),
         optionsHandler: (options) =>

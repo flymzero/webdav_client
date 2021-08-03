@@ -1,32 +1,37 @@
 import 'dart:convert';
 import 'utils.dart';
 
-// Auth type
+/// Auth type
 enum AuthType {
   NoAuth,
   BasicAuth,
   DigestAuth,
 }
 
-// Auth
+/// Auth -----------------------------------
 class Auth {
+  /// username
   final String user;
+
+  /// password
   final String pwd;
 
-  Auth({
+  const Auth({
     required String user,
     required String pwd,
-  })   : this.user = user,
+  })  : this.user = user,
         this.pwd = pwd;
 
+  /// Get auth type
   AuthType get type => AuthType.NoAuth;
 
+  /// Get authorization data
   String? authorize(String method, String path) => null;
 }
 
-// BasicAuth
+/// BasicAuth ------------------------------------
 class BasicAuth extends Auth {
-  BasicAuth({
+  const BasicAuth({
     required String user,
     required String pwd,
   }) : super(
@@ -44,39 +49,7 @@ class BasicAuth extends Auth {
   }
 }
 
-// DigestParts
-class DigestParts {
-  String uri = '';
-  String method = '';
-
-  Map<String, String> parts = {
-    'nonce': '',
-    'realm': '',
-    'qop': '',
-    'opaque': '',
-    'algorithm': '',
-    'entityBody': '',
-  };
-
-  DigestParts(String? authHeader) {
-    if (authHeader != null) {
-      var keys = parts.keys;
-      var list = authHeader.split(',');
-      list.forEach((kv) {
-        keys.forEach((k) {
-          if (kv.contains(k)) {
-            var index = kv.indexOf('=');
-            if (kv.length - 1 > index) {
-              parts[k] = trim(kv.substring(index + 1), '"');
-            }
-          }
-        });
-      });
-    }
-  }
-}
-
-// DigestAuth
+// DigestAuth ----------------------------------
 class DigestAuth extends Auth {
   DigestParts dParts;
 
@@ -172,5 +145,37 @@ class DigestAuth extends Auth {
     }
 
     return '';
+  }
+}
+
+/// DigestParts
+class DigestParts {
+  String uri = '';
+  String method = '';
+
+  Map<String, String> parts = {
+    'nonce': '',
+    'realm': '',
+    'qop': '',
+    'opaque': '',
+    'algorithm': '',
+    'entityBody': '',
+  };
+
+  DigestParts(String? authHeader) {
+    if (authHeader != null) {
+      var keys = parts.keys;
+      var list = authHeader.split(',');
+      list.forEach((kv) {
+        keys.forEach((k) {
+          if (kv.contains(k)) {
+            var index = kv.indexOf('=');
+            if (kv.length - 1 > index) {
+              parts[k] = trim(kv.substring(index + 1), '"');
+            }
+          }
+        });
+      });
+    }
   }
 }
