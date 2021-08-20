@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.1]
+
+- `writeFromFile` streams file content instead of reading it into memory.
+
 ## [1.1.0]
 
 - Fix no authorization when uploading and downloading 
