@@ -1,12 +1,14 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:test/test.dart';
 import 'package:webdav_client/webdav_client.dart' as webdav;
 
 void main() {
   var client = webdav.newClient(
-    'http://192.168.139.165:8090/remote.php/dav/files/admin/',
-    user: 'admin',
-    password: 'admin',
+    'https://something',
+    user: 'user',
+    password: 'pwd',
     debug: true,
   );
 
@@ -89,25 +91,38 @@ void main() {
 
   group('read', () {
     test('read remote file', () async {
-      await client.read('/f/vpn2.exe');
-    });
+      await client.read('/f/vpn2.exe', onProgress: (c, t) {
+        print(c / t);
+      });
+    }, timeout: Timeout.none);
 
     test('read remote file 2 local file', () async {
-      await client.read2File('/Nextcloud intro.mp4', 'F:/download/test.mp4');
-    });
+      await client.read2File('/f/vpn2.exe', 'F:/download/1v.exe',
+          onProgress: (c, t) {
+        print(c / t);
+      });
+    }, timeout: Timeout.none);
   });
 
-  test('write', () async {
-    CancelToken cancel = CancelToken();
-    // await client.ping();
-    await client
-        .writeFromFile('F:/download/16194049777762.jpg', '/test2.jpg', cancel)
-        .catchError((err) {
-      prints(err.toString());
-    });
-  });
+  group('write', () {
+    // It is best not to open debug mode, otherwise the byte data is too large and the output results in IDE cards, 😄
+    test('write data to server', () async {
+      var datas = await client.read('/f/vpn2.exe', onProgress: (c, t) {
+        print(c / t);
+      });
+      await client.write('/ff/vpn2.exe', Uint8List.fromList(datas),
+          onProgress: (c, t) {
+        print(c / t);
+      });
+    }, timeout: Timeout.none);
 
-  //   await Future.delayed(Duration(seconds: 500))
-  //       .then((_) => cancel.cancel('reason'));
-  // }, timeout: Timeout(Duration(minutes: 2)));
+    test('write a file to server', () async {
+      CancelToken c = CancelToken();
+      await client.writeFromFile(
+          'F:/download/VMware-player.exe', '/test100/VMware-player.exe',
+          onProgress: (c, t) {
+        print(c / t);
+      }, cancelToken: c);
+    }, timeout: Timeout.none);
+  });
 }
