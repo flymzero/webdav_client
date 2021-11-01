@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1]
+
+- `writeFromFile` streams file content instead of reading it into memory.
+- fix auth error when root directory is not supported by webdav
+
 ## [1.1.0]
 
 - Fix no authorization when uploading and downloading 

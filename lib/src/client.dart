@@ -150,14 +150,16 @@ class Client {
 
   /// Write the bytes to remote path
   Future<void> write(String path, Uint8List data, [CancelToken? cancelToken]) {
-    return this.c.wdWrite(this, path, data, cancelToken: cancelToken);
+    return this
+        .c
+        .wdWrite(this, path, Stream.value(data), cancelToken: cancelToken);
   }
 
   /// Read local file bytes and write to remote file
   Future<void> writeFromFile(String localFilePath, String path,
       [CancelToken? cancelToken]) async {
-    var data = await io.File(localFilePath).readAsBytes();
-    return this.c.wdWrite(this, path, data, cancelToken: cancelToken);
+    return this.c.wdWrite(this, path, io.File(localFilePath).openRead(),
+        cancelToken: cancelToken);
   }
 }
 

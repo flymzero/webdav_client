@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:dio/native_imp.dart';
@@ -201,7 +200,7 @@ class WdDio extends DioForNative {
   Future<List<int>> wdRead(Client self, String path,
       {CancelToken? cancelToken}) async {
     // fix auth error
-    var pResp = await this.wdOptions(self, '/', cancelToken: cancelToken);
+    var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
     if (pResp.statusCode != 200) {
       throw newResponseError(pResp);
     }
@@ -216,16 +215,16 @@ class WdDio extends DioForNative {
   }
 
   /// write a file
-  Future<void> wdWrite(Client self, String path, Uint8List data,
+  Future<void> wdWrite(Client self, String path, Stream<List<int>> data,
       {CancelToken? cancelToken}) async {
     // fix auth error
-    var pResp = await this.wdOptions(self, '/', cancelToken: cancelToken);
+    var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
     if (pResp.statusCode != 200) {
       throw newResponseError(pResp);
     }
 
     var resp = await this.req(self, 'PUT', path,
-        data: Stream.fromIterable(data.map((e) => [e])),
+        data: data,
         optionsHandler: (options) =>
             options.headers?['content-length'] = data.length,
         cancelToken: cancelToken);
