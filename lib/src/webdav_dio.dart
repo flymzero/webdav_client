@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:dio/native_imp.dart';
@@ -43,12 +46,14 @@ class WdDio extends DioForNative {
   }
 
   // methods-------------------------
-  Future<Response> req(
+  Future<Response<T>> req<T>(
     Client self,
     String method,
     String path, {
     dynamic data,
     Function(Options)? optionsHandler,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
     CancelToken? cancelToken,
   }) async {
     // options
@@ -68,8 +73,14 @@ class WdDio extends DioForNative {
       options.headers?['authorization'] = str;
     }
 
-    var resp = await this.requestUri(Uri.parse('${join(self.uri, path)}'),
-        options: options, data: data, cancelToken: cancelToken);
+    var resp = await this.requestUri<T>(
+      Uri.parse('${join(self.uri, path)}'),
+      options: options,
+      data: data,
+      onSendProgress: onSendProgress,
+      onReceiveProgress: onReceiveProgress,
+      cancelToken: cancelToken,
+    );
 
     if (resp.statusCode == 401) {
       String? w3AHeader = resp.headers.value('www-authenticate');
@@ -105,8 +116,16 @@ class WdDio extends DioForNative {
       }
 
       // retry
-      return this.req(self, method, path,
-          data: data, optionsHandler: optionsHandler, cancelToken: cancelToken);
+      return this.req<T>(
+        self,
+        method,
+        path,
+        data: data,
+        optionsHandler: optionsHandler,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+        cancelToken: cancelToken,
+      );
     }
 
     return resp;
@@ -196,44 +215,263 @@ class WdDio extends DioForNative {
     return self.mkdirAll(parentPath, cancelToken);
   }
 
-  /// read a file
-  Future<List<int>> wdRead(Client self, String path,
-      {CancelToken? cancelToken}) async {
+  /// read a file with bytes
+  Future<List<int>> wdReadWithBytes(
+    Client self,
+    String path, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
     // fix auth error
     var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
     if (pResp.statusCode != 200) {
       throw newResponseError(pResp);
     }
 
-    var resp = await this.req(self, 'GET', path,
-        optionsHandler: (options) => options.responseType = ResponseType.bytes,
-        cancelToken: cancelToken);
+    var resp = await this.req(
+      self,
+      'GET',
+      path,
+      optionsHandler: (options) => options.responseType = ResponseType.bytes,
+      onReceiveProgress: onProgress,
+      cancelToken: cancelToken,
+    );
     if (resp.statusCode != 200) {
       throw newResponseError(resp);
     }
     return resp.data;
   }
 
-  /// write a file
-  Future<void> wdWrite(Client self, String path, Stream<List<int>> data,
-      {CancelToken? cancelToken}) async {
+  /// read a file with stream
+  Future<void> wdReadWithStream(
+    Client self,
+    String path,
+    String savePath, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
     // fix auth error
     var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
     if (pResp.statusCode != 200) {
       throw newResponseError(pResp);
     }
 
-    var resp = await this.req(self, 'PUT', path,
-        data: data,
-        optionsHandler: (options) =>
-            options.headers?['content-length'] = data.length,
-        cancelToken: cancelToken);
+    Response<ResponseBody> resp;
+
+    // Reference Dio download
+    // request
+    try {
+      resp = await this.req(
+        self,
+        'GET',
+        path,
+        optionsHandler: (options) => options.responseType = ResponseType.stream,
+        // onReceiveProgress: onProgress,
+        cancelToken: cancelToken,
+      );
+    } on DioError catch (e) {
+      if (e.type == DioErrorType.response) {
+        if (e.response!.requestOptions.receiveDataWhenStatusError == true) {
+          var res = await transformer.transformResponse(
+            e.response!.requestOptions..responseType = ResponseType.json,
+            e.response!.data as ResponseBody,
+          );
+          e.response!.data = res;
+        } else {
+          e.response!.data = null;
+        }
+      }
+      rethrow;
+    }
+    if (resp.statusCode != 200) {
+      throw newResponseError(resp);
+    }
+
+    resp.headers = Headers.fromMap(resp.data!.headers);
+
+    //If directory (or file) doesn't exist yet, the entire method fails
+    File file = File(savePath);
+    file.createSync(recursive: true);
+
+    var raf = file.openSync(mode: FileMode.write);
+
+    //Create a Completer to notify the success/error state.
+    var completer = Completer<Response>();
+    var future = completer.future;
+    var received = 0;
+
+    // Stream<Uint8List>
+    var stream = resp.data!.stream;
+    var compressed = false;
+    var total = 0;
+    var contentEncoding = resp.headers.value(Headers.contentEncodingHeader);
+    if (contentEncoding != null) {
+      compressed = ['gzip', 'deflate', 'compress'].contains(contentEncoding);
+    }
+    if (compressed) {
+      total = -1;
+    } else {
+      total =
+          int.parse(resp.headers.value(Headers.contentLengthHeader) ?? '-1');
+    }
+
+    late StreamSubscription subscription;
+    Future? asyncWrite;
+    var closed = false;
+    Future _closeAndDelete() async {
+      if (!closed) {
+        closed = true;
+        await asyncWrite;
+        await raf.close();
+        await file.delete();
+      }
+    }
+
+    subscription = stream.listen(
+      (data) {
+        subscription.pause();
+        // Write file asynchronously
+        asyncWrite = raf.writeFrom(data).then((_raf) {
+          // Notify progress
+          received += data.length;
+
+          onProgress?.call(received, total);
+
+          raf = _raf;
+          if (cancelToken == null || !cancelToken.isCancelled) {
+            subscription.resume();
+          }
+        }).catchError((err, StackTrace stackTrace) async {
+          try {
+            await subscription.cancel();
+          } finally {
+            completer.completeError(DioMixin.assureDioError(
+              err,
+              resp.requestOptions,
+              stackTrace,
+            ));
+          }
+        });
+      },
+      onDone: () async {
+        try {
+          await asyncWrite;
+          closed = true;
+          await raf.close();
+          completer.complete(resp);
+        } catch (e) {
+          completer.completeError(DioMixin.assureDioError(
+            e,
+            resp.requestOptions,
+          ));
+        }
+      },
+      onError: (e) async {
+        try {
+          await _closeAndDelete();
+        } finally {
+          completer.completeError(DioMixin.assureDioError(
+            e,
+            resp.requestOptions,
+          ));
+        }
+      },
+      cancelOnError: true,
+    );
+
+    // ignore: unawaited_futures
+    cancelToken?.whenCancel.then((_) async {
+      await subscription.cancel();
+      await _closeAndDelete();
+    });
+
+    if (resp.requestOptions.receiveTimeout > 0) {
+      future = future
+          .timeout(Duration(
+        milliseconds: resp.requestOptions.receiveTimeout,
+      ))
+          .catchError((Object err) async {
+        await subscription.cancel();
+        await _closeAndDelete();
+        if (err is TimeoutException) {
+          throw DioError(
+            requestOptions: resp.requestOptions,
+            error:
+                'Receiving data timeout[${resp.requestOptions.receiveTimeout}ms]',
+            type: DioErrorType.receiveTimeout,
+          );
+        } else {
+          throw err;
+        }
+      });
+    }
+    await DioMixin.listenCancelForAsyncTask(cancelToken, future);
+  }
+
+  /// write a file with bytes
+  Future<void> wdWriteWithBytes(
+    Client self,
+    String path,
+    Uint8List data, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    // fix auth error
+    var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
+    if (pResp.statusCode != 200) {
+      throw newResponseError(pResp);
+    }
+
+    // mkdir
+    await this._createParent(self, path, cancelToken: cancelToken);
+
+    var resp = await this.req(
+      self,
+      'PUT',
+      path,
+      data: Stream.fromIterable(data.map((e) => [e])),
+      optionsHandler: (options) =>
+          options.headers?['content-length'] = data.length,
+      onSendProgress: onProgress,
+      cancelToken: cancelToken,
+    );
     var status = resp.statusCode;
     if (status == 200 || status == 201 || status == 204) {
       return;
-    } else if (status == 409) {
-      await this._createParent(self, path, cancelToken: cancelToken);
-      return this.wdWrite(self, path, data, cancelToken: cancelToken);
+    }
+    throw newResponseError(resp);
+  }
+
+  /// write a file with stream
+  Future<void> wdWriteWithStream(
+    Client self,
+    String path,
+    Stream<List<int>> data,
+    int length, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    // fix auth error
+    var pResp = await this.wdOptions(self, path, cancelToken: cancelToken);
+    if (pResp.statusCode != 200) {
+      throw newResponseError(pResp);
+    }
+
+    // mkdir
+    await this._createParent(self, path, cancelToken: cancelToken);
+
+    var resp = await this.req(
+      self,
+      'PUT',
+      path,
+      data: data,
+      optionsHandler: (options) => options.headers?['content-length'] = length,
+      onSendProgress: onProgress,
+      cancelToken: cancelToken,
+    );
+    var status = resp.statusCode;
+    if (status == 200 || status == 201 || status == 204) {
+      return;
     }
     throw newResponseError(resp);
   }

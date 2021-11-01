@@ -1,9 +1,14 @@
 # Changelog
 
+## [1.1.2]
+
+- Upload and download support progress, modified method parameters(read, read2File, write, writeFromFile)
+- update dio 4.0.0 > 4.0.1
+
 ## [1.1.1]
 
-- `writeFromFile` streams file content instead of reading it into memory.
-- fix auth error when root directory is not supported by webdav
+- `writeFromFile` streams file content instead of reading it into memory.(thanks `@István Soós`)
+- fix auth error when root directory is not supported by webdav(thanks `@dutsky`)
 
 ## [1.1.0]
 

@@ -137,29 +137,68 @@ class Client {
   }
 
   /// Read the bytes of a file
-  Future<List<int>> read(String path, [CancelToken? cancelToken]) {
-    return this.c.wdRead(this, path, cancelToken: cancelToken);
+  /// It is best not to open debug mode, otherwise the byte data is too large and the output results in IDE cards, 😄
+  Future<List<int>> read(
+    String path, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) {
+    return this.c.wdReadWithBytes(
+          this,
+          path,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
   }
 
-  /// Read the bytes of a file and write to a local file
-  Future<void> read2File(String path, String localFilePath,
-      [CancelToken? cancelToken]) async {
-    var bytes = await this.c.wdRead(this, path, cancelToken: cancelToken);
-    await io.File(localFilePath).writeAsBytes(bytes);
+  /// Read the bytes of a file with stream and write to a local file
+  Future<void> read2File(
+    String path,
+    String savePath, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    await this.c.wdReadWithStream(
+          this,
+          path,
+          savePath,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
   }
 
   /// Write the bytes to remote path
-  Future<void> write(String path, Uint8List data, [CancelToken? cancelToken]) {
-    return this
-        .c
-        .wdWrite(this, path, Stream.value(data), cancelToken: cancelToken);
+  Future<void> write(
+    String path,
+    Uint8List data, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) {
+    return this.c.wdWriteWithBytes(
+          this,
+          path,
+          data,
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
   }
 
-  /// Read local file bytes and write to remote file
-  Future<void> writeFromFile(String localFilePath, String path,
-      [CancelToken? cancelToken]) async {
-    return this.c.wdWrite(this, path, io.File(localFilePath).openRead(),
-        cancelToken: cancelToken);
+  /// Read local file stream and write to remote file
+  Future<void> writeFromFile(
+    String localFilePath,
+    String path, {
+    void Function(int count, int total)? onProgress,
+    CancelToken? cancelToken,
+  }) async {
+    var file = io.File(localFilePath);
+    return this.c.wdWriteWithStream(
+          this,
+          path,
+          file.openRead(),
+          file.lengthSync(),
+          onProgress: onProgress,
+          cancelToken: cancelToken,
+        );
   }
 }
 

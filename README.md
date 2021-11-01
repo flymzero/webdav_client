@@ -2,6 +2,7 @@
 
 A dart WebDAV client library(`support null-safety`), **use [dio](https://github.com/flutterchina/dio) as http client**.
 
+pub.dev [link](https://pub.dev/packages/webdav_client)
 
 ## Main features
 
@@ -15,13 +16,6 @@ A dart WebDAV client library(`support null-safety`), **use [dio](https://github.
 * [download file](#download-file)
 * [upload file](#upload-file)
 * [cancel request](#cancel-request)
-
----
-## Todo
-
-* Upload support for break uploads
-* Download support for breakdowns
-
 ---
 ## Usage
 
@@ -115,18 +109,25 @@ var client = webdav.newClient(
 ### Download file
 ```dart
     // download bytes
-    await client.read('/folder/folder/openvpn.exe');
+    await client.read('/folder/folder/openvpn.exe', onProgress: (c, t) {
+        print(c / t);
+      });
 
-    // download 2 local file
+    // download 2 local file with stream 
     await client.read2File(
-          '/folder/vpn.exe', 'C:/Users/xxx/vpn2.exe');
+          '/folder/vpn.exe', 'C:/Users/xxx/vpn2.exe', onProgress: (c, t) {
+        print(c / t);
+      });
 ```
 
 ### Upload file
 ```dart
-    // upload local file 2 remote file
+    // upload local file 2 remote file with stream
+    CancelToken c = CancelToken();
     await client.writeFromFile(
-        'C:/Users/xxx/vpn.exe', '/f/vpn2.exe');
+        'C:/Users/xxx/vpn.exe', '/f/vpn2.exe', onProgress: (c, t) {
+        print(c / t);
+      }, cancelToken: c);
 ```
 
 ### Cancel request
