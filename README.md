@@ -17,6 +17,14 @@ pub.dev [link](https://pub.dev/packages/webdav_client)
 * [upload file](#upload-file)
 * [cancel request](#cancel-request)
 ---
+
+## web support
+
+see [stackoverflow](https://stackoverflow.com/questions/65630743/how-to-solve-flutter-web-api-cors-error-only-with-dart-code) for CORSB problems needing attention
+
+![](images/1.png)
+---
+
 ## Usage
 
 First of all you should create `client` instance using `newClient()` function:

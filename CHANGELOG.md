@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.5]
+
+- Web platform support. (see [stackoverflow](https://stackoverflow.com/questions/65630743/how-to-solve-flutter-web-api-cors-error-only-with-dart-code) for CORSB problems needing attention)
+- Dependency Update
+
 ## [1.1.2]
 
 - Upload and download support progress, modified method parameters(read, read2File, write, writeFromFile)

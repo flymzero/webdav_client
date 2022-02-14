@@ -2,18 +2,22 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'adapter/adapter_stub.dart'
+    if (dart.library.io) 'adapter/adapter_mobile.dart'
+    if (dart.library.js) 'adapter/adapter_web.dart';
 
 import 'package:dio/dio.dart';
-import 'package:dio/native_imp.dart';
 
 import 'auth.dart';
 import 'client.dart';
 import 'utils.dart';
 
 /// Wrapped http client
-class WdDio extends DioForNative {
-  // Request config
-  BaseOptions? baseOptions;
+class WdDio with DioMixin implements Dio {
+  // // Request config
+  // BaseOptions? baseOptions;
 
   // Interceptors
   final List<Interceptor>? interceptorList;
@@ -22,15 +26,18 @@ class WdDio extends DioForNative {
   final bool debug;
 
   WdDio({
-    this.baseOptions,
+    BaseOptions? options,
     this.interceptorList,
     this.debug = false,
-  }) : super(baseOptions) {
+  }) {
+    this.options = options ?? BaseOptions();
     // 禁止重定向
     this.options.followRedirects = false;
 
     // 状态码错误视为成功
     this.options.validateStatus = (status) => true;
+
+    httpClientAdapter = kIsWeb ? getAdapter() : getAdapter();
 
     // 拦截器
     if (interceptorList != null) {
