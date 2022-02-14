@@ -22,7 +22,7 @@ pub.dev [link](https://pub.dev/packages/webdav_client)
 
 see [stackoverflow](https://stackoverflow.com/questions/65630743/how-to-solve-flutter-web-api-cors-error-only-with-dart-code) for CORSB problems needing attention
 
-![](images/1.png)
+![web](https://raw.githubusercontent.com/flymzero/webdav_client/main/images/1.png)
 ---
 
 ## Usage
