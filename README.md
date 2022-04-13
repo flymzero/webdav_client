@@ -29,7 +29,7 @@ see [stackoverflow](https://stackoverflow.com/questions/65630743/how-to-solve-fl
 
 First of all you should create `client` instance using `newClient()` function:
 ```dart
-var client = webdav.newClient(
+var client = newClient(
     'http://localhost:6688/',
     user: 'flyzero',
     password: '123456',
