@@ -68,6 +68,17 @@ class Client {
     return WebdavXml.toFiles(path, str);
   }
 
+  /// Read a single files properties
+  Future<File> readProps(String path, [CancelToken? cancelToken]) async {
+    path = fixSlashes(path);
+    var resp = await this
+        .c
+        .wdPropfind(this, path, true, fileXmlStr, cancelToken: cancelToken);
+
+    String str = resp.data;
+    return WebdavXml.toFiles(path, str, skipSelf: false).first;
+  }
+
   /// Create a folder
   Future<void> mkdir(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
