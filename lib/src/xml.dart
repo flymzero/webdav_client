@@ -28,11 +28,10 @@ class WebdavXml {
   static List<XmlElement> findElements(XmlElement element, String tag) =>
       element.findElements(tag, namespace: '*').toList();
 
-  static List<File> toFiles(String path, String xmlStr) {
+  static List<File> toFiles(String path, String xmlStr, {skipSelf = true}) {
     var files = <File>[];
     var xmlDocument = XmlDocument.parse(xmlStr);
     List<XmlElement> list = findAllElements(xmlDocument, 'response');
-    bool skipSelf = true;
     // response
     list.forEach((element) {
       // name
