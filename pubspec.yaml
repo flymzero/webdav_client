@@ -1,7 +1,7 @@
 name: webdav_client
 description: A dart WebDAV client library,  support Basic/Digest authentication、read、make、delete、rename、copy、download、upload、cancel request 
 
-version: 1.1.6
+version: 1.1.7
 homepage: https://github.com/flymzero/webdav_client
 
 environment:
@@ -11,9 +11,6 @@ dependencies:
   dio: ^4.0.4
   xml: ^5.3.0
   convert: ^3.0.1
-  flutter: 
-    sdk: flutter
-    version: ^0.0.0
 
 dev_dependencies:
   test: '>=1.0.0 <2.0.0'
