@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'adapter/adapter_stub.dart'
     if (dart.library.io) 'adapter/adapter_mobile.dart'
@@ -37,7 +36,7 @@ class WdDio with DioMixin implements Dio {
     // 状态码错误视为成功
     this.options.validateStatus = (status) => true;
 
-    httpClientAdapter = kIsWeb ? getAdapter() : getAdapter();
+    httpClientAdapter = getAdapter();
 
     // 拦截器
     if (interceptorList != null) {

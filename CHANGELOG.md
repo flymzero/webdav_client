@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.7]
+- Remove unnecessary dependency on flutter
+
 ## [1.1.6]
 
 - Web platform support. (see [stackoverflow](https://stackoverflow.com/questions/65630743/how-to-solve-flutter-web-api-cors-error-only-with-dart-code) for CORSB problems needing attention)
