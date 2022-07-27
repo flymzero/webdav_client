@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.1.8]
+- Dependency Update
+ 
 ## [1.1.7]
 - Remove unnecessary dependency on flutter
 
