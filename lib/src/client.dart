@@ -36,13 +36,16 @@ class Client {
       this.c.options.headers = headers;
 
   /// Set the connection server timeout time in milliseconds.
-  void setConnectTimeout(int timout) => this.c.options.connectTimeout = timout;
+  void setConnectTimeout(int timeout) =>
+      this.c.options.connectTimeout = Duration(milliseconds: timeout);
 
   /// Set send data timeout time in milliseconds.
-  void setSendTimeout(int timout) => this.c.options.sendTimeout = timout;
+  void setSendTimeout(int timeout) =>
+      this.c.options.sendTimeout = Duration(milliseconds: timeout);
 
   /// Set transfer data time in milliseconds.
-  void setReceiveTimeout(int timout) => this.c.options.receiveTimeout = timout;
+  void setReceiveTimeout(int timeout) =>
+      this.c.options.receiveTimeout = Duration(milliseconds: timeout);
 
   /// Test whether the service can connect
   Future<void> ping([CancelToken? cancelToken]) async {

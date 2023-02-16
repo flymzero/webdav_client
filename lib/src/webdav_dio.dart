@@ -276,7 +276,7 @@ class WdDio with DioMixin implements Dio {
         cancelToken: cancelToken,
       );
     } on DioError catch (e) {
-      if (e.type == DioErrorType.response) {
+      if (e.type == DioErrorType.badResponse) {
         if (e.response!.requestOptions.receiveDataWhenStatusError == true) {
           var res = await transformer.transformResponse(
             e.response!.requestOptions..responseType = ResponseType.json,
@@ -365,20 +365,22 @@ class WdDio with DioMixin implements Dio {
           closed = true;
           await raf.close();
           completer.complete(resp);
-        } catch (e) {
+        } catch (e, s) {
           completer.completeError(DioMixin.assureDioError(
             e,
             resp.requestOptions,
+            s,
           ));
         }
       },
-      onError: (e) async {
+      onError: (e, s) async {
         try {
           await _closeAndDelete();
         } finally {
           completer.completeError(DioMixin.assureDioError(
             e,
             resp.requestOptions,
+            s,
           ));
         }
       },
@@ -391,11 +393,12 @@ class WdDio with DioMixin implements Dio {
       await _closeAndDelete();
     });
 
-    if (resp.requestOptions.receiveTimeout > 0) {
+    if (resp.requestOptions.receiveTimeout != null &&
+        resp.requestOptions.receiveTimeout!
+                .compareTo(Duration(milliseconds: 0)) >
+            0) {
       future = future
-          .timeout(Duration(
-        milliseconds: resp.requestOptions.receiveTimeout,
-      ))
+          .timeout(resp.requestOptions.receiveTimeout!)
           .catchError((Object err) async {
         await subscription.cancel();
         await _closeAndDelete();
