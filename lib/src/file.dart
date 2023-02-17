@@ -9,7 +9,7 @@ class File {
   DateTime? mTime;
 
   File({
-  this.path,
+    this.path,
     this.isDir,
     this.name,
     this.mimeType,
@@ -17,5 +17,5 @@ class File {
     this.eTag,
     this.cTime,
     this.mTime,
-});
+  });
 }

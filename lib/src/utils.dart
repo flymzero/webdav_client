@@ -58,7 +58,7 @@ DioError newResponseError(Response resp) {
   return DioError(
       requestOptions: resp.requestOptions,
       response: resp,
-      type: DioErrorType.response,
+      type: DioErrorType.badResponse,
       error: resp.statusMessage);
 }
 
@@ -66,7 +66,7 @@ DioError newResponseError(Response resp) {
 DioError newXmlError(dynamic err) {
   return DioError(
     requestOptions: RequestOptions(path: '/'),
-    type: DioErrorType.other,
+    type: DioErrorType.unknown,
     error: err,
   );
 }
