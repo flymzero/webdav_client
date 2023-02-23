@@ -1,5 +1,8 @@
 # Changelog
 
+### [1.2.0]
+- fix PROPFIND method with request data by utf8.encode again
+
 ### [1.1.9]
 - Bumped version to **1.1.9** ! Thanks [erdemyerebasmaz](https://github.com/erdemyerebasmaz)
 - Updated dependencies to latest
