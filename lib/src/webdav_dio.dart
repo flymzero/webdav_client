@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -347,14 +346,13 @@ class WdDio with DioMixin implements Dio {
           if (cancelToken == null || !cancelToken.isCancelled) {
             subscription.resume();
           }
-        }).catchError((err, StackTrace stackTrace) async {
+        }).catchError((err) async {
           try {
             await subscription.cancel();
           } finally {
             completer.completeError(DioMixin.assureDioError(
               err,
               resp.requestOptions,
-              stackTrace,
             ));
           }
         });
@@ -365,11 +363,10 @@ class WdDio with DioMixin implements Dio {
           closed = true;
           await raf.close();
           completer.complete(resp);
-        } catch (e, s) {
+        } catch (e) {
           completer.completeError(DioMixin.assureDioError(
             e,
             resp.requestOptions,
-            s,
           ));
         }
       },
@@ -380,7 +377,6 @@ class WdDio with DioMixin implements Dio {
           completer.completeError(DioMixin.assureDioError(
             e,
             resp.requestOptions,
-            s,
           ));
         }
       },
