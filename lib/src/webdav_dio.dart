@@ -80,7 +80,8 @@ class WdDio with DioMixin implements Dio {
     }
 
     var resp = await this.requestUri<T>(
-      Uri.parse('${path.startsWith(RegExp(r'(http|https)://')) ? path : join(self.uri, path)}'),
+      Uri.parse(
+          '${path.startsWith(RegExp(r'(http|https)://')) ? path : join(self.uri, path)}'),
       options: options,
       data: data,
       onSendProgress: onSendProgress,
@@ -96,7 +97,10 @@ class WdDio with DioMixin implements Dio {
       if (self.auth.type == AuthType.NoAuth) {
         // Digest
         if (lowerW3AHeader?.contains('digest') == true) {
-          self.auth = DigestAuth(user: self.auth.user, pwd: self.auth.pwd, dParts: DigestParts(w3AHeader));
+          self.auth = DigestAuth(
+              user: self.auth.user,
+              pwd: self.auth.pwd,
+              dParts: DigestParts(w3AHeader));
         }
         // Basic
         else if (lowerW3AHeader?.contains('basic') == true) {
@@ -108,8 +112,12 @@ class WdDio with DioMixin implements Dio {
         }
       }
       // before is digest and Nonce Lifetime is out
-      else if (self.auth.type == AuthType.DigestAuth && lowerW3AHeader?.contains('stale=true') == true) {
-        self.auth = DigestAuth(user: self.auth.user, pwd: self.auth.pwd, dParts: DigestParts(w3AHeader));
+      else if (self.auth.type == AuthType.DigestAuth &&
+          lowerW3AHeader?.contains('stale=true') == true) {
+        self.auth = DigestAuth(
+            user: self.auth.user,
+            pwd: self.auth.pwd,
+            dParts: DigestParts(w3AHeader));
       } else {
         throw newResponseError(resp);
       }
@@ -131,9 +139,11 @@ class WdDio with DioMixin implements Dio {
   }
 
   // OPTIONS
-  Future<Response> wdOptions(Client self, String path, {CancelToken? cancelToken}) {
+  Future<Response> wdOptions(Client self, String path,
+      {CancelToken? cancelToken}) {
     return this.req(self, 'OPTIONS', path,
-        optionsHandler: (options) => options.headers?['depth'] = '0', cancelToken: cancelToken);
+        optionsHandler: (options) => options.headers?['depth'] = '0',
+        cancelToken: cancelToken);
   }
 
   // // quota
@@ -147,8 +157,11 @@ class WdDio with DioMixin implements Dio {
   // }
 
   // PROPFIND
-  Future<Response> wdPropfind(Client self, String path, bool depth, String dataStr, {CancelToken? cancelToken}) async {
-    var resp = await this.req(self, 'PROPFIND', path, data: dataStr, optionsHandler: (options) {
+  Future<Response> wdPropfind(
+      Client self, String path, bool depth, String dataStr,
+      {CancelToken? cancelToken}) async {
+    var resp = await this.req(self, 'PROPFIND', path, data: dataStr,
+        optionsHandler: (options) {
       options.headers?['depth'] = depth ? '1' : '0';
       options.headers?['content-type'] = 'application/xml;charset=UTF-8';
       options.headers?['accept'] = 'application/xml,text/xml';
@@ -164,17 +177,20 @@ class WdDio with DioMixin implements Dio {
   }
 
   /// MKCOL
-  Future<Response> wdMkcol(Client self, String path, {CancelToken? cancelToken}) {
+  Future<Response> wdMkcol(Client self, String path,
+      {CancelToken? cancelToken}) {
     return this.req(self, 'MKCOL', path, cancelToken: cancelToken);
   }
 
   /// DELETE
-  Future<Response> wdDelete(Client self, String path, {CancelToken? cancelToken}) {
+  Future<Response> wdDelete(Client self, String path,
+      {CancelToken? cancelToken}) {
     return this.req(self, 'DELETE', path, cancelToken: cancelToken);
   }
 
   /// COPY OR MOVE
-  Future<void> wdCopyMove(Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
+  Future<void> wdCopyMove(
+      Client self, String oldPath, String newPath, bool isCopy, bool overwrite,
       {CancelToken? cancelToken}) async {
     var method = isCopy == true ? 'COPY' : 'MOVE';
     var resp = await this.req(self, method, oldPath, optionsHandler: (options) {
@@ -188,14 +204,16 @@ class WdDio with DioMixin implements Dio {
       return;
     } else if (status == 409) {
       await this._createParent(self, newPath, cancelToken: cancelToken);
-      return this.wdCopyMove(self, oldPath, newPath, isCopy, overwrite, cancelToken: cancelToken);
+      return this.wdCopyMove(self, oldPath, newPath, isCopy, overwrite,
+          cancelToken: cancelToken);
     } else {
       throw newResponseError(resp);
     }
   }
 
   /// create parent folder
-  Future<void>? _createParent(Client self, String path, {CancelToken? cancelToken}) {
+  Future<void>? _createParent(Client self, String path,
+      {CancelToken? cancelToken}) {
     var parentPath = path.substring(0, path.lastIndexOf('/') + 1);
 
     if (parentPath == '' || parentPath == '/') {
@@ -232,7 +250,8 @@ class WdDio with DioMixin implements Dio {
             self,
             'GET',
             resp.headers["location"]!.first,
-            optionsHandler: (options) => options.responseType = ResponseType.bytes,
+            optionsHandler: (options) =>
+                options.responseType = ResponseType.bytes,
             onReceiveProgress: onProgress,
             cancelToken: cancelToken,
           ))
@@ -313,7 +332,8 @@ class WdDio with DioMixin implements Dio {
     if (compressed) {
       total = -1;
     } else {
-      total = int.parse(resp.headers.value(Headers.contentLengthHeader) ?? '-1');
+      total =
+          int.parse(resp.headers.value(Headers.contentLengthHeader) ?? '-1');
     }
 
     late StreamSubscription subscription;
@@ -386,14 +406,19 @@ class WdDio with DioMixin implements Dio {
     });
 
     if (resp.requestOptions.receiveTimeout != null &&
-        resp.requestOptions.receiveTimeout!.compareTo(Duration(milliseconds: 0)) > 0) {
-      future = future.timeout(resp.requestOptions.receiveTimeout!).catchError((Object err) async {
+        resp.requestOptions.receiveTimeout!
+                .compareTo(Duration(milliseconds: 0)) >
+            0) {
+      future = future
+          .timeout(resp.requestOptions.receiveTimeout!)
+          .catchError((Object err) async {
         await subscription.cancel();
         await _closeAndDelete();
         if (err is TimeoutException) {
           throw DioError(
             requestOptions: resp.requestOptions,
-            error: 'Receiving data timeout[${resp.requestOptions.receiveTimeout}ms]',
+            error:
+                'Receiving data timeout[${resp.requestOptions.receiveTimeout}ms]',
             type: DioErrorType.receiveTimeout,
           );
         } else {
@@ -426,7 +451,8 @@ class WdDio with DioMixin implements Dio {
       'PUT',
       path,
       data: Stream.fromIterable(data.map((e) => [e])),
-      optionsHandler: (options) => options.headers?['content-length'] = data.length,
+      optionsHandler: (options) =>
+          options.headers?['content-length'] = data.length,
       onSendProgress: onProgress,
       cancelToken: cancelToken,
     );
