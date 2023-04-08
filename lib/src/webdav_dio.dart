@@ -80,7 +80,7 @@ class WdDio with DioMixin implements Dio {
     }
 
     var resp = await this.requestUri<T>(
-      Uri.parse('${join(self.uri, path)}'),
+      Uri.parse('${path.startsWith(RegExp(r'(http|https)://')) ? path : join(self.uri, path)}'),
       options: options,
       data: data,
       onSendProgress: onSendProgress,
@@ -226,6 +226,19 @@ class WdDio with DioMixin implements Dio {
       cancelToken: cancelToken,
     );
     if (resp.statusCode != 200) {
+      if (resp.statusCode != null) {
+        if (resp.statusCode! >= 300 && resp.statusCode! < 400) {
+          return (await this.req(
+            self,
+            'GET',
+            resp.headers["location"]!.first,
+            optionsHandler: (options) => options.responseType = ResponseType.bytes,
+            onReceiveProgress: onProgress,
+            cancelToken: cancelToken,
+          ))
+              .data;
+        }
+      }
       throw newResponseError(resp);
     }
     return resp.data;
