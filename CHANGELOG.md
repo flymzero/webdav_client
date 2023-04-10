@@ -1,5 +1,8 @@
 # Changelog
 
+### [1.2.1]
+- Dio Dependency Update
+
 ### [1.2.0]
 - fix PROPFIND method with request data by utf8.encode again
 

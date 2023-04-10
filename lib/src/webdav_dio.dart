@@ -365,9 +365,9 @@ class WdDio with DioMixin implements Dio {
           try {
             await subscription.cancel();
           } finally {
-            completer.completeError(DioMixin.assureDioError(
-              err,
-              resp.requestOptions,
+            completer.completeError(DioError(
+              requestOptions: resp.requestOptions,
+              error: err,
             ));
           }
         });
@@ -378,10 +378,10 @@ class WdDio with DioMixin implements Dio {
           closed = true;
           await raf.close();
           completer.complete(resp);
-        } catch (e) {
-          completer.completeError(DioMixin.assureDioError(
-            e,
-            resp.requestOptions,
+        } catch (err) {
+          completer.completeError(DioError(
+            requestOptions: resp.requestOptions,
+            error: err,
           ));
         }
       },
@@ -389,9 +389,9 @@ class WdDio with DioMixin implements Dio {
         try {
           await _closeAndDelete();
         } finally {
-          completer.completeError(DioMixin.assureDioError(
-            e,
-            resp.requestOptions,
+          completer.completeError(DioError(
+            requestOptions: resp.requestOptions,
+            error: e,
           ));
         }
       },
