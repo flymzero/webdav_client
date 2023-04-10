@@ -79,7 +79,8 @@ class WdDio with DioMixin implements Dio {
     }
 
     var resp = await this.requestUri<T>(
-      Uri.parse('${join(self.uri, path)}'),
+      Uri.parse(
+          '${path.startsWith(RegExp(r'(http|https)://')) ? path : join(self.uri, path)}'),
       options: options,
       data: data,
       onSendProgress: onSendProgress,
@@ -158,8 +159,8 @@ class WdDio with DioMixin implements Dio {
   Future<Response> wdPropfind(
       Client self, String path, bool depth, String dataStr,
       {CancelToken? cancelToken}) async {
-    var resp = await this.req(self, 'PROPFIND', path,
-        data: dataStr, optionsHandler: (options) {
+    var resp = await this.req(self, 'PROPFIND', path, data: dataStr,
+        optionsHandler: (options) {
       options.headers?['depth'] = depth ? '1' : '0';
       options.headers?['content-type'] = 'application/xml;charset=UTF-8';
       options.headers?['accept'] = 'application/xml,text/xml';
@@ -242,6 +243,20 @@ class WdDio with DioMixin implements Dio {
       cancelToken: cancelToken,
     );
     if (resp.statusCode != 200) {
+      if (resp.statusCode != null) {
+        if (resp.statusCode! >= 300 && resp.statusCode! < 400) {
+          return (await this.req(
+            self,
+            'GET',
+            resp.headers["location"]!.first,
+            optionsHandler: (options) =>
+                options.responseType = ResponseType.bytes,
+            onReceiveProgress: onProgress,
+            cancelToken: cancelToken,
+          ))
+              .data;
+        }
+      }
       throw newResponseError(resp);
     }
     return resp.data;
@@ -370,7 +385,7 @@ class WdDio with DioMixin implements Dio {
           ));
         }
       },
-      onError: (e, s) async {
+      onError: (e) async {
         try {
           await _closeAndDelete();
         } finally {
