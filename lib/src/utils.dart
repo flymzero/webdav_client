@@ -35,10 +35,6 @@ DateTime? str2LocalTime(String? str) {
   if (str == null) {
     return null;
   }
-  var s = str.toLowerCase();
-  if (!s.endsWith('gmt')) {
-    return null;
-  }
   var list = s.split(' ');
   if (list.length != 6) {
     return null;
