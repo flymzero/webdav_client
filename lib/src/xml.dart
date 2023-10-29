@@ -14,6 +14,22 @@ const fileXmlStr = '''<d:propfind xmlns:d='DAV:'>
 			</d:prop>
 		</d:propfind>''';
 
+String findXmlString(String pattern) {
+  return '''<d:propfind xmlns:d='DAV:'>
+      <d:prop>
+        <d:displayname/>
+      </d:prop>
+      <d:filter>
+        <d:like>
+          <d:prop>
+            <d:displayname/>
+          </d:prop>
+          <d:literal>$pattern</D:literal>
+        </d:like>
+      </d:filter>
+		</d:propfind>''';
+}
+
 // const quotaXmlStr = '''<d:propfind xmlns:d="DAV:">
 //            <d:prop>
 //              <d:quota-available-bytes/>

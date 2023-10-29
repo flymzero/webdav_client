@@ -71,6 +71,21 @@ class Client {
     return WebdavXml.toFiles(path, str);
   }
 
+  Future<List<File>> findFiles(String path, String pattern,
+      [CancelToken? cancelToken]) async {
+    path = fixSlashes(path);
+    var resp = await this.c.wdPropfind(
+          this,
+          path,
+          true,
+          findXmlString(pattern),
+          cancelToken: cancelToken,
+        );
+
+    String str = resp.data;
+    return WebdavXml.toFiles(path, str);
+  }
+
   /// Read a single files properties
   Future<File> readProps(String path, [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
