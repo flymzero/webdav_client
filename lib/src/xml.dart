@@ -30,6 +30,33 @@ String findXmlString(String pattern) {
 		</d:propfind>''';
 }
 
+String searchXmlString(String pattern) {
+  return '''<d:searchrequest xmlns:d="DAV:'>
+  <d:basicsearch>
+    <d:select>
+      <d:prop>
+        <d:displayname/>
+      </d:prop>
+    </d:select>
+    <d:from>
+      <d:scope>
+        <d:href>/</d:href>
+        <d:depth>infinity</d:depth>
+      </d:scope>
+    </d:from>
+    <d:where>
+      <d:like>
+        <d:prop>
+          <d:displayname/>
+        </d:prop>
+        <d:literal>$pattern</d:literal>
+      </d:like>
+    </d:where>
+    <d:orderby/>
+  </d:basicsearch>
+</d:searchrequest>''';
+}
+
 // const quotaXmlStr = '''<d:propfind xmlns:d="DAV:">
 //            <d:prop>
 //              <d:quota-available-bytes/>

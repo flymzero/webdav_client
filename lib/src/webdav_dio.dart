@@ -175,6 +175,25 @@ class WdDio with DioMixin implements Dio {
     return resp;
   }
 
+  Future<Response> wdSearch(
+      Client self, String path, bool depth, String dataStr,
+      {CancelToken? cancelToken}) async {
+    var resp = await this.req(self, 'SEARCHREQUEST', path, data: dataStr,
+        optionsHandler: (options) {
+      options.headers?['depth'] = depth ? '1' : '0';
+      options.headers?['content-type'] = 'application/xml;charset=UTF-8';
+      options.headers?['accept'] = 'application/xml,text/xml';
+      options.headers?['accept-charset'] = 'utf-8';
+      options.headers?['accept-encoding'] = '';
+    }, cancelToken: cancelToken);
+
+    if (resp.statusCode != 207) {
+      throw newResponseError(resp);
+    }
+
+    return resp;
+  }
+
   /// MKCOL
   Future<Response> wdMkcol(Client self, String path,
       {CancelToken? cancelToken}) {
