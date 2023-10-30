@@ -71,13 +71,13 @@ class Client {
     return WebdavXml.toFiles(path, str);
   }
 
-  Future<List<File>> findFiles(String path, String pattern,
+  Future<List<File>> findFiles(String path, bool depth, String pattern,
       [CancelToken? cancelToken]) async {
     path = fixSlashes(path);
     var resp = await this.c.wdPropfind(
           this,
           path,
-          true,
+          depth,
           findXmlString(pattern),
           cancelToken: cancelToken,
         );
