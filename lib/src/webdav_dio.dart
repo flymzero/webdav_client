@@ -450,8 +450,10 @@ class WdDio with DioMixin implements Dio {
       'PUT',
       path,
       data: Stream.fromIterable(data.map((e) => [e])),
-      optionsHandler: (options) =>
-          options.headers?['content-length'] = data.length,
+      optionsHandler: (options) {
+          options.headers?['content-length'] = data.length;
+          options.headers?['content-type'] = "application/octet-stream";
+      },
       onSendProgress: onProgress,
       cancelToken: cancelToken,
     );
@@ -485,7 +487,10 @@ class WdDio with DioMixin implements Dio {
       'PUT',
       path,
       data: data,
-      optionsHandler: (options) => options.headers?['content-length'] = length,
+      optionsHandler: (options) {
+          options.headers?['content-length'] = length;
+          options.headers?['content-type'] = "application/octet-stream";
+      },
       onSendProgress: onProgress,
       cancelToken: cancelToken,
     );
