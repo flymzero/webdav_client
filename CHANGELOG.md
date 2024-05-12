@@ -1,5 +1,8 @@
 # Changelog
 
+### [1.2.2]
+- 302 redirect: redirect to the real link. Thanks [@cmlanche](https://github.com/flymzero/webdav_client/pull/46)
+
 ### [1.2.1]
 - Dio Dependency Update
 
